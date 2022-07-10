@@ -15,21 +15,38 @@ def all_the_rest(soup):
     scraped_coins = soup.find_all('a', class_= "tw-hidden lg:tw-flex font-bold tw-items-center tw-justify-between")
     coins = list()
 
-    for i, coin in enumerate(scraped_coins,1):
-        coin_name = coin.text.strip()
-        last_url = coin_name.replace(' ', '-').lower()
-        coins.append(last_url)
-        coin_url = 'https://www.coingecko.com/en/coins/' + last_url
-        soup_coin = get_soup(coin_url)
+    # scraped_links = soup.find('a', class_="tw-hidden lg:tw-flex font-bold tw-items-center tw-justify-between")
+    # # scraped_links = soup.find('a', href='/en/coins/bitcoin').next_sibling
+    # print(scraped_links)
 
-        price = soup_coin.find('span', class_ = 'no-wrap').text
+
+    for i, coin in enumerate(scraped_coins[50:], 50):
+        coin_name = coin.text.strip()
+        last_url = coin['href']
+        
+        coin_url = 'https://www.coingecko.com' + last_url
+        soup_coin = get_soup(coin_url)
 
         dom = etree.HTML(str(soup_coin))
 
-        if coin_name == 'Ethereum':
+        # price = soup_coin.find_all('span', class_='no-wrap')[1].text
+
+        try:
+            price = dom.xpath('/html/body/div[5]/div[4]/div[1]/div/div[1]/div[3]/div/div[1]/span[1]/span')[-1].text
+        except IndexError:
+            try:
+                price = dom.xpath('/html/body/div[5]/div[5]/div[1]/div/div[1]/div[3]/div/div[1]/span[1]/span')[-1].text
+            except IndexError:
+                price = dom.xpath('/html/body/div[5]/div[6]/div[1]/div/div[1]/div[3]/div/div[1]/span[1]/span')[-1].text
+
+        try:
             market_cap = dom.xpath('/html/body/div[5]/div[5]/div[1]/div/div[2]/div[2]/div[1]/div[1]/span[2]/span')[-1].text
-        else:
-            market_cap = dom.xpath('/html/body/div[5]/div[4]/div[1]/div/div[2]/div[2]/div[1]/div[1]/span[2]/span')[-1].text
+        except IndexError:
+            try:
+                market_cap = dom.xpath('/html/body/div[5]/div[4]/div[1]/div/div[2]/div[2]/div[1]/div[1]/span[2]/span')[-1].text
+            except IndexError:
+                market_cap = dom.xpath('/html/body/div[5]/div[6]/div[1]/div/div[2]/div[2]/div[1]/div[1]/span[2]/span')[-1].text
+
         print(f"Currency #{i}: {coin_name}\n"
               f"Price: {price}\n"
               f"URL: {coin_url}\n"
