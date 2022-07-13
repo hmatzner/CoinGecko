@@ -78,6 +78,11 @@ def web_scraper(url, soup, k):
 
 
 def main():
+    """
+    Main function of the module:
+    - asks the user how many coins to get info about
+    - calls the other functions and prints a dataframe
+    """
     url, soup = get_soup(COINGECKO_URL)
     while True:
         k = input('Indicate how many coins, from 1 to 100, you would like to see: ')
