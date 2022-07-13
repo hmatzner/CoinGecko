@@ -85,7 +85,7 @@ def main():
             k = int(k)
             break
         else:
-            print('The value must be an integer from 0 to 100.')
+            print('The value must be an integer from 1 to 100.')
     df = web_scraper(url, soup, k)
     print(df)
 
