@@ -81,7 +81,7 @@ def main():
     url, soup = get_soup(COINGECKO_URL)
     while True:
         k = input('Indicate how many coins, from 1 to 100, you would like to see: ')
-        if k in map(str, range(1, 100)):
+        if k in map(str, range(1, 101)):
             k = int(k)
             break
         else:
