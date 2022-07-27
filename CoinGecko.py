@@ -45,7 +45,7 @@ def web_scraper(url, soup, k):
     @param k: number of coins the user selected to see
     @return: a Pandas dataframe
     """
-    scraped_coins = soup.find_all('a', class_= "tw-hidden lg:tw-flex font-bold tw-items-center tw-justify-between")
+    scraped_coins = soup.find_all('a', class_= "lg:tw-flex font-bold tw-items-center tw-justify-between")
     list_of_lists = list()
 
     print('Information being retrieved...')
