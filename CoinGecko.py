@@ -5,6 +5,7 @@ import pandas as pd
 from tqdm import tqdm
 import argparse
 from urllib.request import Request, urlopen
+import os
 
 COINGECKO_URL = 'https://www.coingecko.com'
 
@@ -67,8 +68,8 @@ def web_scraper(url, soup, k):
     """
     scraped_links = soup.find_all('a', class_= "tw-flex tw-items-start md:tw-flex-row tw-flex-col")
     list_of_lists = list()
-    list_of_df = list()
     print('Information being retrieved...')
+    list_of_df = list()
 
     for link in tqdm(scraped_links[:k], total=k):
         coin_name = link.findChild().text.strip()
@@ -85,7 +86,6 @@ def web_scraper(url, soup, k):
                 try:
                     if value == 0:
                         price = price_scraper(dom, index)
-                        print(price)
                     else:
                         market_cap = market_scraper(dom, index)
                     break
@@ -110,17 +110,20 @@ def web_scraper(url, soup, k):
 
         req = Request(COINGECKO_URL + historical_links, headers={'User-Agent': 'Mozilla/5.0'})
         csv_file = urlopen(req).read()
-        # print(csv_file[0:5], type(csv_file))
 
         with open(f'csv_{coin_name}', 'wb') as f:
             f.write(csv_file)
+
+        # "df_{0}".format(coin_name) = pd.read_csv(f'csv_{coin_name}')
+        # exec(f'df_{coin_name} = pd.read_csv(csv_{coin_name})')
+
         df2 = pd.read_csv(f'csv_{coin_name}')
-        print(df2)
+        os.remove(f'csv_{coin_name}')
+        list_of_df.append(df2)
 
-        # list_of_df.append(df)
-        #
-        # print(df)
-
+    for df_historical in list_of_df:
+        print(df_historical)
+        
     df = pd.DataFrame(list_of_lists, columns=['Coin', 'Price', 'Market Cap', 'URL'])
     df.index = range(1, len(df) + 1)
 
