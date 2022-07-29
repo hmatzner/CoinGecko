@@ -84,11 +84,15 @@ def temp_df_creator(coin_name, csv_file, days):
     """
     with open(f'csv_{coin_name}', 'wb') as f:
         f.write(csv_file)
-    temp_df = pd.read_csv(f'csv_{coin_name}')
-    if days is not None:
-        temp_df = temp_df.tail(days)
+
+    if days is None:
+        temp_df = pd.read_csv(f'csv_{coin_name}')
+    else:
+        temp_df = pd.read_csv(f'csv_{coin_name}').tail(days)
+
     temp_df['Coin'] = coin_name
     os.remove(f'csv_{coin_name}')
+
     return temp_df
 
 
@@ -145,6 +149,9 @@ def web_scraper(url, soup, k, days):
 
     df = pd.DataFrame(list_of_lists, columns=['Coin', 'Price', 'Market Cap', 'URL'])
     df.index = range(1, len(df) + 1)
+    df.reset_index(level=0, inplace=True)
+    df.rename(columns={'index': '#'}, inplace=True)
+    df.set_index('Coin', inplace=True)
 
     print('\n')
     return df, df_historical
