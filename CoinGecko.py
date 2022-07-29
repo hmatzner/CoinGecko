@@ -4,6 +4,7 @@ from lxml import etree
 import pandas as pd
 from tqdm import tqdm
 import argparse
+from urllib.request import Request, urlopen
 
 COINGECKO_URL = 'https://www.coingecko.com'
 
@@ -52,6 +53,10 @@ def market_scraper(dom, index):
     return dom.xpath(f'/html/body/div[5]/div[{index}]/div[1]/div/div[2]/div[2]/div[1]/div[1]/span[2]/span')[-1].text
 
 
+def historical_scraper(dom2):
+    return dom2.xpath(f'/html/body/div[5]/div[7]/div/div/div[4]/div/ul/li[2]/a')[-1].base
+
+
 def web_scraper(url, soup, k):
     """
     Parses the data and creates a Pandas dataframe with the main information of each coin.
@@ -60,15 +65,19 @@ def web_scraper(url, soup, k):
     @param k: number of coins the user selected to see
     @return: a Pandas dataframe
     """
-    scraped_coins = soup.find_all('a', class_= "lg:tw-flex font-bold tw-items-center tw-justify-between")
+    scraped_links = soup.find_all('a', class_= "tw-flex tw-items-start md:tw-flex-row tw-flex-col")
     list_of_lists = list()
+    list_of_df = list()
     print('Information being retrieved...')
 
-    for coin in tqdm(scraped_coins[:k], total=k):
-        coin_name = coin.text.strip()
-        coin_url = url + coin['href']
+    for link in tqdm(scraped_links[:k], total=k):
+        coin_name = link.findChild().text.strip()
+        # coin_name = coin.text.strip()
+
+        coin_url = url + link['href']
         soup_coin = get_soup(coin_url)
         dom = etree.HTML(str(soup_coin))
+
         price, market_cap = 0, 0
 
         for value in range(2):
@@ -76,6 +85,7 @@ def web_scraper(url, soup, k):
                 try:
                     if value == 0:
                         price = price_scraper(dom, index)
+                        print(price)
                     else:
                         market_cap = market_scraper(dom, index)
                     break
@@ -83,6 +93,33 @@ def web_scraper(url, soup, k):
                     pass
 
         list_of_lists.append([coin_name, price, market_cap, coin_url])
+
+        historical_url = coin_url + '/historical_data#panel'
+
+        # soup_historical = get_soup(historical_url)
+        # dom2 = etree.HTML(str(soup_historical))
+        # csv_file = historical_scraper(dom2)
+        # print(csv_file)
+
+        r = requests.get(historical_url)
+        html = r.text
+        soup_historical = BeautifulSoup(html, 'lxml')
+        historical_links = soup_historical.find_all('a', class_='dropdown-item')[-1]['href']
+        # df = pd.read_csv(COINGECKO_URL + historical_links)
+        # df = pd.read_csv(historical_links)
+
+        req = Request(COINGECKO_URL + historical_links, headers={'User-Agent': 'Mozilla/5.0'})
+        csv_file = urlopen(req).read()
+        # print(csv_file[0:5], type(csv_file))
+
+        with open(f'csv_{coin_name}', 'wb') as f:
+            f.write(csv_file)
+        df2 = pd.read_csv(f'csv_{coin_name}')
+        print(df2)
+
+        # list_of_df.append(df)
+        #
+        # print(df)
 
     df = pd.DataFrame(list_of_lists, columns=['Coin', 'Price', 'Market Cap', 'URL'])
     df.index = range(1, len(df) + 1)
