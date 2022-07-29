@@ -6,12 +6,13 @@ from tqdm import tqdm
 import argparse
 from urllib.request import Request, urlopen
 import os
-import numpy as np
 
 COINGECKO_URL = 'https://www.coingecko.com'
 
 parser = argparse.ArgumentParser(description='Indicate how many coins, from 1 to 100, you would like to see.')
 parser.add_argument('-k', '--coins', type=int, metavar='', help='Number of coins')
+parser.add_argument('-d', '--days', type=int, metavar='', help='Number of days')
+
 # parser.add_argument('coins', type=int, metavar='', help='Number of coins')
 
 
@@ -59,13 +60,13 @@ def market_scraper(dom, index):
 #     return dom2.xpath(f'/html/body/div[5]/div[7]/div/div/div[4]/div/ul/li[2]/a')[-1].base
 
 
-def csv_scraper(historical_url):
+def csv_scraper(url_historical):
     """
 
-    @param historical_url:
+    @param url_historical:
     @return:
     """
-    r = requests.get(historical_url)
+    r = requests.get(url_historical)
     html = r.text
     soup_historical = BeautifulSoup(html, 'lxml')
     historical_links = soup_historical.find_all('a', class_='dropdown-item')[-1]['href']
@@ -74,7 +75,7 @@ def csv_scraper(historical_url):
     return csv_file
 
 
-def temp_df_creator(coin_name, csv_file):
+def temp_df_creator(coin_name, csv_file, days):
     """
 
     @param coin_name:
@@ -84,12 +85,14 @@ def temp_df_creator(coin_name, csv_file):
     with open(f'csv_{coin_name}', 'wb') as f:
         f.write(csv_file)
     temp_df = pd.read_csv(f'csv_{coin_name}')
+    if days is not None:
+        temp_df = temp_df.tail(days)
     temp_df['Coin'] = coin_name
     os.remove(f'csv_{coin_name}')
     return temp_df
 
 
-def web_scraper(url, soup, k):
+def web_scraper(url, soup, k, days):
     """
     Parses the data and creates a Pandas dataframe with the main information of each coin.
     @param url: main webpage's url
@@ -99,8 +102,7 @@ def web_scraper(url, soup, k):
     """
     scraped_links = soup.find_all('a', class_= "tw-flex tw-items-start md:tw-flex-row tw-flex-col")
     list_of_lists = list()
-    list_of_df = list()
-    historical_df = np.nan
+    df_historical = None
     print('Information being retrieved...')
 
     for link in tqdm(scraped_links[:k], total=k):
@@ -111,7 +113,7 @@ def web_scraper(url, soup, k):
         soup_coin = get_soup(coin_url)
         dom = etree.HTML(str(soup_coin))
 
-        price, market_cap = 0, 0
+        price, market_cap = (None, None)
 
         for value in range(2):
             for index in range(4,7):
@@ -126,33 +128,26 @@ def web_scraper(url, soup, k):
 
         list_of_lists.append([coin_name, price, market_cap, coin_url])
 
-        historical_url = coin_url + '/historical_data#panel'
+        url_historical = coin_url + '/historical_data#panel'
 
-        csv_file = csv_scraper(historical_url)
+        csv_file = csv_scraper(url_historical)
 
-        temp_df = temp_df_creator(coin_name, csv_file)
+        temp_df = temp_df_creator(coin_name, csv_file, days)
         # print(f'Temporary df: {temp_df}')
 
         if coin_name == 'Bitcoin':
-            historical_df = temp_df
+            df_historical = temp_df
         else:
-            historical_df = pd.concat([historical_df, temp_df])
+            df_historical = pd.concat([df_historical, temp_df])
 
         # "df_{0}".format(coin_name) = pd.read_csv(f'csv_{coin_name}')
         # exec(f'df_{coin_name} = pd.read_csv(csv_{coin_name})')
-
-        list_of_df.append(temp_df)
-
-    print(historical_df)
-
-    # for df_historical in list_of_df:
-    #     print(df_historical)
 
     df = pd.DataFrame(list_of_lists, columns=['Coin', 'Price', 'Market Cap', 'URL'])
     df.index = range(1, len(df) + 1)
 
     print('\n')
-    return df
+    return df, df_historical
 
 
 def main():
@@ -169,6 +164,7 @@ def main():
     #     print('Good night!')
     # print(function(args.n1, args.n2))
     k = args.coins
+    days = args.days
 
     if k is None:
         print('ERROR: Please provide a value for k.')
@@ -179,8 +175,10 @@ def main():
         return
 
     url, soup = get_soup(COINGECKO_URL)
-    df = web_scraper(url, soup, k)
+    df, df_historical = web_scraper(url, soup, k, days)
     print(df)
+    print('\n')
+    print(df_historical)
 
 
 if __name__ == '__main__':
