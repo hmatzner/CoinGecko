@@ -6,6 +6,7 @@ from tqdm import tqdm
 import argparse
 from urllib.request import Request, urlopen
 import os
+import numpy as np
 
 COINGECKO_URL = 'https://www.coingecko.com'
 
@@ -54,8 +55,38 @@ def market_scraper(dom, index):
     return dom.xpath(f'/html/body/div[5]/div[{index}]/div[1]/div/div[2]/div[2]/div[1]/div[1]/span[2]/span')[-1].text
 
 
-def historical_scraper(dom2):
-    return dom2.xpath(f'/html/body/div[5]/div[7]/div/div/div[4]/div/ul/li[2]/a')[-1].base
+# def historical_scraper(dom2):
+#     return dom2.xpath(f'/html/body/div[5]/div[7]/div/div/div[4]/div/ul/li[2]/a')[-1].base
+
+
+def csv_scraper(historical_url):
+    """
+
+    @param historical_url:
+    @return:
+    """
+    r = requests.get(historical_url)
+    html = r.text
+    soup_historical = BeautifulSoup(html, 'lxml')
+    historical_links = soup_historical.find_all('a', class_='dropdown-item')[-1]['href']
+    req = Request(COINGECKO_URL + historical_links, headers={'User-Agent': 'Mozilla/5.0'})
+    csv_file = urlopen(req).read()
+    return csv_file
+
+
+def temp_df_creator(coin_name, csv_file):
+    """
+
+    @param coin_name:
+    @param csv_file:
+    @return:
+    """
+    with open(f'csv_{coin_name}', 'wb') as f:
+        f.write(csv_file)
+    temp_df = pd.read_csv(f'csv_{coin_name}')
+    temp_df['Coin'] = coin_name
+    os.remove(f'csv_{coin_name}')
+    return temp_df
 
 
 def web_scraper(url, soup, k):
@@ -68,8 +99,9 @@ def web_scraper(url, soup, k):
     """
     scraped_links = soup.find_all('a', class_= "tw-flex tw-items-start md:tw-flex-row tw-flex-col")
     list_of_lists = list()
-    print('Information being retrieved...')
     list_of_df = list()
+    historical_df = np.nan
+    print('Information being retrieved...')
 
     for link in tqdm(scraped_links[:k], total=k):
         coin_name = link.findChild().text.strip()
@@ -96,34 +128,26 @@ def web_scraper(url, soup, k):
 
         historical_url = coin_url + '/historical_data#panel'
 
-        # soup_historical = get_soup(historical_url)
-        # dom2 = etree.HTML(str(soup_historical))
-        # csv_file = historical_scraper(dom2)
-        # print(csv_file)
+        csv_file = csv_scraper(historical_url)
 
-        r = requests.get(historical_url)
-        html = r.text
-        soup_historical = BeautifulSoup(html, 'lxml')
-        historical_links = soup_historical.find_all('a', class_='dropdown-item')[-1]['href']
-        # df = pd.read_csv(COINGECKO_URL + historical_links)
-        # df = pd.read_csv(historical_links)
+        temp_df = temp_df_creator(coin_name, csv_file)
+        # print(f'Temporary df: {temp_df}')
 
-        req = Request(COINGECKO_URL + historical_links, headers={'User-Agent': 'Mozilla/5.0'})
-        csv_file = urlopen(req).read()
-
-        with open(f'csv_{coin_name}', 'wb') as f:
-            f.write(csv_file)
+        if coin_name == 'Bitcoin':
+            historical_df = temp_df
+        else:
+            historical_df = pd.concat([historical_df, temp_df])
 
         # "df_{0}".format(coin_name) = pd.read_csv(f'csv_{coin_name}')
         # exec(f'df_{coin_name} = pd.read_csv(csv_{coin_name})')
 
-        df2 = pd.read_csv(f'csv_{coin_name}')
-        os.remove(f'csv_{coin_name}')
-        list_of_df.append(df2)
+        list_of_df.append(temp_df)
 
-    for df_historical in list_of_df:
-        print(df_historical)
-        
+    print(historical_df)
+
+    # for df_historical in list_of_df:
+    #     print(df_historical)
+
     df = pd.DataFrame(list_of_lists, columns=['Coin', 'Price', 'Market Cap', 'URL'])
     df.index = range(1, len(df) + 1)
 
