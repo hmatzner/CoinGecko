@@ -6,12 +6,15 @@ from tqdm import tqdm
 import argparse
 from urllib.request import Request, urlopen
 import os
+from datetime import datetime, timedelta
 
 COINGECKO_URL = 'https://www.coingecko.com'
 
 parser = argparse.ArgumentParser(description='Indicate how many coins, from 1 to 100, you would like to see.')
 parser.add_argument('-k', '--coins', type=int, metavar='', help='Number of coins')
-parser.add_argument('-d', '--days', type=int, metavar='', help='Number of days')
+# parser.add_argument('-d', '--days', type=int, metavar='', help='Number of days')
+# parser.add_argument('-D', '--date', type=int, metavar='', help='Number of days')
+
 
 # parser.add_argument('coins', type=int, metavar='', help='Number of coins')
 
@@ -19,7 +22,9 @@ parser.add_argument('-d', '--days', type=int, metavar='', help='Number of days')
 # parser.add_argument('n1', type=float, metavar='', help='First nº of the calculation')
 # parser.add_argument('n2', type=float, metavar='',  help='Second nº of the calculation')
 
-# group = parser.add_mutually_exclusive_group()
+group = parser.add_mutually_exclusive_group()
+group.add_argument('-d', '--days', type=int, metavar='', help='Number of days')
+group.add_argument('-D', '--date', type=str, metavar='', help='Number of days')
 # group.add_argument('-w', '--morning', action='store_true', help='Gives a "Good morning" message')
 # group.add_argument('-n', '--night', action='store_true', help='Gives a "Good night" message')
 
@@ -75,7 +80,7 @@ def csv_scraper(url_historical):
     return csv_file
 
 
-def temp_df_creator(coin_name, csv_file, days):
+def temp_df_creator(coin_name, csv_file, days, date):
     """
 
     @param coin_name:
@@ -85,10 +90,20 @@ def temp_df_creator(coin_name, csv_file, days):
     with open(f'csv_{coin_name}', 'wb') as f:
         f.write(csv_file)
 
-    if days is None:
-        temp_df = pd.read_csv(f'csv_{coin_name}')
-    else:
+    # print(date, type(date))
+
+    if days is not None:
         temp_df = pd.read_csv(f'csv_{coin_name}').tail(days)
+    elif date is not None:
+        today = datetime.today()
+        # date = '2022-06-30'
+
+        # date_obj = datetime.strptime(date, '%Y-%m-%d')
+        delta = (today - date).days
+
+        temp_df = pd.read_csv(f'csv_{coin_name}').tail(delta)
+    else:
+        temp_df = pd.read_csv(f'csv_{coin_name}')
 
     temp_df['Coin'] = coin_name
     os.remove(f'csv_{coin_name}')
@@ -96,7 +111,7 @@ def temp_df_creator(coin_name, csv_file, days):
     return temp_df
 
 
-def web_scraper(url, soup, k, days):
+def web_scraper(url, soup, k, days, date):
     """
     Parses the data and creates a Pandas dataframe with the main information of each coin.
     @param url: main webpage's url
@@ -108,6 +123,13 @@ def web_scraper(url, soup, k, days):
     list_of_lists = list()
     df_historical = None
     print('Information being retrieved...')
+
+
+    today = datetime.today()
+    # date = '2022-06-30'
+
+    date = datetime.strptime(date, '%Y-%m-%d')
+    delta = (today - date).days
 
     for link in tqdm(scraped_links[:k], total=k):
         coin_name = link.findChild().text.strip()
@@ -136,7 +158,7 @@ def web_scraper(url, soup, k, days):
 
         csv_file = csv_scraper(url_historical)
 
-        temp_df = temp_df_creator(coin_name, csv_file, days)
+        temp_df = temp_df_creator(coin_name, csv_file, days, date)
         # print(f'Temporary df: {temp_df}')
 
         if coin_name == 'Bitcoin':
@@ -172,6 +194,8 @@ def main():
     # print(function(args.n1, args.n2))
     k = args.coins
     days = args.days
+    date = args.date
+    print(type(date))
 
     if k is None:
         print('ERROR: Please provide a value for k.')
@@ -182,7 +206,7 @@ def main():
         return
 
     url, soup = get_soup(COINGECKO_URL)
-    df, df_historical = web_scraper(url, soup, k, days)
+    df, df_historical = web_scraper(url, soup, k, days, date)
     print(df)
     print('\n')
     print(df_historical)
