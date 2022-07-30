@@ -6,30 +6,19 @@ from tqdm import tqdm
 import argparse
 from urllib.request import Request, urlopen
 import os
-from datetime import datetime, timedelta
+from datetime import datetime
 
 COINGECKO_URL = 'https://www.coingecko.com'
 
 parser = argparse.ArgumentParser(description="Useful information: 'd' and 'D' are mutually exclusive and only one of them is expected at most.")
 parser.add_argument('-k', '--coins', type=int, metavar='', help='Input how many coins, from 1 to 100, \
 you would like to see (default: k=100).')
-# parser.add_argument('-d', '--days', type=int, metavar='', help='Number of days')
-# parser.add_argument('-D', '--date', type=int, metavar='', help='Number of days')
-
-
-# parser.add_argument('coins', type=int, metavar='', help='Number of coins')
-
-
-# parser.add_argument('n1', type=float, metavar='', help='First nº of the calculation')
-# parser.add_argument('n2', type=float, metavar='',  help='Second nº of the calculation')
 
 group = parser.add_mutually_exclusive_group()
 group.add_argument('-d', '--days', type=int, metavar='', help='Input number of days of historical \
 data you want to see (default: maximum available for each coin).')
 group.add_argument('-D', '--date', type=str, metavar='', help='Input from which date you want to see \
 the historical data (format: YYYY-MM-DD, default: maximum available for each coin).')
-# group.add_argument('-w', '--morning', action='store_true', help='Gives a "Good morning" message')
-# group.add_argument('-n', '--night', action='store_true', help='Gives a "Good night" message')
 
 args = parser.parse_args()
 
@@ -64,15 +53,11 @@ def market_scraper(dom, index):
     return dom.xpath(f'/html/body/div[5]/div[{index}]/div[1]/div/div[2]/div[2]/div[1]/div[1]/span[2]/span')[-1].text
 
 
-# def historical_scraper(dom2):
-#     return dom2.xpath(f'/html/body/div[5]/div[7]/div/div/div[4]/div/ul/li[2]/a')[-1].base
-
-
 def csv_scraper(url_historical):
     """
-
-    @param url_historical:
-    @return:
+    Performs the request to get the historical data, parses it and reads the csv file from the URL.
+    @param url_historical: URL of the historical data of a coin
+    @return: a csv file
     """
     r = requests.get(url_historical)
     html = r.text
@@ -85,25 +70,22 @@ def csv_scraper(url_historical):
 
 def temp_df_creator(coin_name, csv_file, days, date):
     """
-
-    @param coin_name:
-    @param csv_file:
-    @return:
+    Creates a csv file of the coin's historical data, creates a temporary dataframe and removes the csv file.
+    @param coin_name: name of the coin
+    @param csv_file: csv format file of the coin's historical data
+    @param days: argument passed by the user, specifies how many days of data to save in the dataframe
+    @param date: argument passed by the user, specifies from which date of data to save in the dataframe
+    @return: a temporary dataframe
     """
     with open(f'csv_{coin_name}', 'wb') as f:
         f.write(csv_file)
-
-    # print(date, type(date))
 
     if days is not None:
         temp_df = pd.read_csv(f'csv_{coin_name}').tail(days)
     elif date is not None:
         today = datetime.today()
-        # date = '2022-06-30'
-
         date = datetime.strptime(date, '%Y-%m-%d')
         delta = (today - date).days + 1
-
         temp_df = pd.read_csv(f'csv_{coin_name}').tail(delta)
     else:
         temp_df = pd.read_csv(f'csv_{coin_name}')
@@ -119,7 +101,9 @@ def web_scraper(url, soup, k, days, date):
     Parses the data and creates a Pandas dataframe with the main information of each coin.
     @param url: main webpage's url
     @param soup: Beautiful Soup object created with the requests module
-    @param k: number of coins the user selected to see
+    @param k: argument passed by the user, specifies the number of coins selected
+    @param days: argument passed by the user, specifies how many days of data to save in the dataframe
+    @param date: argument passed by the user, specifies from which date of data to save in the dataframe
     @return: a Pandas dataframe
     """
     scraped_links = soup.find_all('a', class_= "tw-flex tw-items-start md:tw-flex-row tw-flex-col")
@@ -127,16 +111,9 @@ def web_scraper(url, soup, k, days, date):
     df_historical = None
     print('Information being retrieved...')
 
-
-    # today = datetime.today()
-    # # date = '2022-06-30'
-    #
-    # date = datetime.strptime(date, '%Y-%m-%d')
-    # delta = (today - date).days
-
     for link in tqdm(scraped_links[:k], total=k):
         coin_name = link.findChild().text.strip()
-        # coin_name = coin.text.strip()
+        # coin_name = coin.text.strip() We leave this piece of code here in case the class in the webpage is modified.
 
         coin_url = url + link['href']
         soup_coin = get_soup(coin_url)
@@ -162,15 +139,12 @@ def web_scraper(url, soup, k, days, date):
         csv_file = csv_scraper(url_historical)
 
         temp_df = temp_df_creator(coin_name, csv_file, days, date)
-        # print(f'Temporary df: {temp_df}')
 
+        # Assuming Bitcoin is the #1 coin. If the flippening was to happen, the code should be revised.
         if coin_name == 'Bitcoin':
             df_historical = temp_df
         else:
             df_historical = pd.concat([df_historical, temp_df])
-
-        # "df_{0}".format(coin_name) = pd.read_csv(f'csv_{coin_name}')
-        # exec(f'df_{coin_name} = pd.read_csv(csv_{coin_name})')
 
     df = pd.DataFrame(list_of_lists, columns=['Coin', 'Price', 'Market Cap', 'URL'])
     df.index = range(1, len(df) + 1)
@@ -188,25 +162,21 @@ def main():
     - assigns the operation to perform to a variable
     - prints a message, if any
     - prints the return value of the math operation to perform
+    # TODO: revise this docstring when finished.
     """
-    # function = dict_[args.operation]
-    # if args.morning:
-    #     print('Good morning!')
-    # elif args.night:
-    #     print('Good night!')
-    # print(function(args.n1, args.n2))
     k = args.coins
     days = args.days
     date = args.date
 
     if k is None:
-        # print('ERROR: Please provide a value for k.')
-        # return
         k = 100
 
     if k not in range(1, 101):
         print('ERROR: The value of k must be an integer from 1 to 100.')
         return
+
+    # TODO: Add handling errors when format of days and date is not correct.
+    # TODO: Add handling error when both days and date are provided.
 
     url, soup = get_soup(COINGECKO_URL)
     df, df_historical = web_scraper(url, soup, k, days, date)
