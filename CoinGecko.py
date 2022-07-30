@@ -1,12 +1,12 @@
+import os
 import requests
+import argparse
+import pandas as pd
 from bs4 import BeautifulSoup
 from lxml import etree
-import pandas as pd
-from tqdm import tqdm
-import argparse
 from urllib.request import Request, urlopen
-import os
 from datetime import datetime
+from tqdm import tqdm
 
 COINGECKO_URL = 'https://www.coingecko.com'
 
