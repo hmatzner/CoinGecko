@@ -10,8 +10,9 @@ from datetime import datetime, timedelta
 
 COINGECKO_URL = 'https://www.coingecko.com'
 
-parser = argparse.ArgumentParser(description='Indicate how many coins, from 1 to 100, you would like to see.')
-parser.add_argument('-k', '--coins', type=int, metavar='', help='Number of coins')
+parser = argparse.ArgumentParser(description="Useful information: 'd' and 'D' are mutually exclusive and only one of them is expected at most.")
+parser.add_argument('-k', '--coins', type=int, metavar='', help='Input how many coins, from 1 to 100, \
+you would like to see (default: k=100).')
 # parser.add_argument('-d', '--days', type=int, metavar='', help='Number of days')
 # parser.add_argument('-D', '--date', type=int, metavar='', help='Number of days')
 
@@ -23,8 +24,10 @@ parser.add_argument('-k', '--coins', type=int, metavar='', help='Number of coins
 # parser.add_argument('n2', type=float, metavar='',  help='Second nº of the calculation')
 
 group = parser.add_mutually_exclusive_group()
-group.add_argument('-d', '--days', type=int, metavar='', help='Number of days')
-group.add_argument('-D', '--date', type=str, metavar='', help='Number of days')
+group.add_argument('-d', '--days', type=int, metavar='', help='Input number of days of historical \
+data you want to see (default: maximum available for each coin).')
+group.add_argument('-D', '--date', type=str, metavar='', help='Input from which date you want to see \
+the historical data (format: YYYY-MM-DD, default: maximum available for each coin).')
 # group.add_argument('-w', '--morning', action='store_true', help='Gives a "Good morning" message')
 # group.add_argument('-n', '--night', action='store_true', help='Gives a "Good night" message')
 
@@ -98,8 +101,8 @@ def temp_df_creator(coin_name, csv_file, days, date):
         today = datetime.today()
         # date = '2022-06-30'
 
-        # date_obj = datetime.strptime(date, '%Y-%m-%d')
-        delta = (today - date).days
+        date = datetime.strptime(date, '%Y-%m-%d')
+        delta = (today - date).days + 1
 
         temp_df = pd.read_csv(f'csv_{coin_name}').tail(delta)
     else:
@@ -125,11 +128,11 @@ def web_scraper(url, soup, k, days, date):
     print('Information being retrieved...')
 
 
-    today = datetime.today()
-    # date = '2022-06-30'
-
-    date = datetime.strptime(date, '%Y-%m-%d')
-    delta = (today - date).days
+    # today = datetime.today()
+    # # date = '2022-06-30'
+    #
+    # date = datetime.strptime(date, '%Y-%m-%d')
+    # delta = (today - date).days
 
     for link in tqdm(scraped_links[:k], total=k):
         coin_name = link.findChild().text.strip()
@@ -195,11 +198,11 @@ def main():
     k = args.coins
     days = args.days
     date = args.date
-    print(type(date))
 
     if k is None:
-        print('ERROR: Please provide a value for k.')
-        return
+        # print('ERROR: Please provide a value for k.')
+        # return
+        k = 100
 
     if k not in range(1, 101):
         print('ERROR: The value of k must be an integer from 1 to 100.')
