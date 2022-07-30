@@ -101,6 +101,7 @@ def temp_df_creator(coin_name, csv_file, days, date):
 def web_scraper(url, soup, k, days, date):
     """
     Parses the data and creates a Pandas dataframe with the main information of each coin.
+    Calls functions price_scraper, market_scraper, csv_scraper and temp_df_creator in the process.
     @param url: main webpage's url
     @param soup: Beautiful Soup object created with the requests module
     @param k: argument passed by the user, specifies the number of coins selected
@@ -160,12 +161,12 @@ def web_scraper(url, soup, k, days, date):
 
 def main():
     """
-    Main function of the module that:
-    - assigns the operation to perform to a variable
-    - prints a message, if any
-    - prints the return value of the math operation to perform
-    # TODO: revise this docstring when finished.
+    Main function of the module:
+    - checks all three possible arguments provided by the user have an expected value, giving an error message if needed
+    - calls the get_soup and web_scraper functions
+    - prints the two dataframes returned by the web_scraped function
     """
+    # TODO: revise this docstring when finished.
     k = args.coins
     days = args.days
     date = args.date
