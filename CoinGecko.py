@@ -173,21 +173,23 @@ def main():
     if k is None:
         k = 100
     if k not in range(1, 101):
-        print('ERROR: The value of k must be an integer from 1 to 100.')
+        print("ERROR: The value of the argument 'coins' must be an integer from 1 to 100.")
         return
 
-    date_correct = re.search('^\d{4}-\d{2}-\d{2}$', date)
-    if date_correct is None:
-        print("ERROR: The date's format should be of the form YYYY-MM-DD.")
-        return
-    try:
-        date = datetime.strptime(date, '%Y-%m-%d')
-    except ValueError:
-        print("ERROR: The date is invalid.")
-        return
+    if date is not None:
+        date_correct = re.search('^\d{4}-\d{2}-\d{2}$', date)
+        if date_correct is None:
+            print("ERROR: The format of the argument 'date' should be YYYY-MM-DD.")
+            return
+        try:
+            date = datetime.strptime(date, '%Y-%m-%d')
+        except ValueError:
+            print("ERROR: The argument 'date' is invalid.")
+            return
 
-    # TODO: Add handling errors when format of days and date is not correct.
-    # TODO: Add handling error when both days and date are provided.
+    if days < 0:
+        print("ERROR: The argument 'days' should be a non-negative integer.")
+        return
 
     url, soup = get_soup(COINGECKO_URL)
     df, df_historical = web_scraper(url, soup, k, days, date)
