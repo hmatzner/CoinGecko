@@ -86,7 +86,6 @@ def temp_df_creator(coin_name, csv_file, days, date):
         temp_df = pd.read_csv(f'csv_{coin_name}').tail(days)
     elif date is not None:
         today = datetime.today()
-        # date = datetime.strptime(date, '%Y-%m-%d')
         delta = (today - date).days + 1
         temp_df = pd.read_csv(f'csv_{coin_name}').tail(delta)
     else:
@@ -106,7 +105,7 @@ def web_scraper(url, soup, k, days, date):
     @param k: argument passed by the user, specifies the number of coins selected
     @param days: argument passed by the user, specifies how many days of data to save in the dataframe
     @param date: argument passed by the user, specifies from which date of data to save in the dataframe
-    @return: a Pandas dataframe
+    @return: a Pandas dataframe with relevant info about each coin and another one with their historical data
     """
     scraped_links = soup.find_all('a', class_= "tw-flex tw-items-start md:tw-flex-row tw-flex-col")
     list_of_lists = list()
@@ -177,7 +176,7 @@ def main():
         return
 
     if date is not None:
-        date_correct = re.search('^\d{4}-\d{2}-\d{2}$', date)
+        date_correct = re.search('^\\d{4}-\\d{2}-\\d{2}$', date)
         if date_correct is None:
             print("ERROR: The format of the argument 'date' should be YYYY-MM-DD.")
             return
@@ -187,7 +186,7 @@ def main():
             print("ERROR: The argument 'date' is invalid.")
             return
 
-    if days < 0:
+    if days is not None and days < 0:
         print("ERROR: The argument 'days' should be a non-negative integer.")
         return
 
