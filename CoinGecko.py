@@ -12,7 +12,8 @@ from tqdm import tqdm
 
 COINGECKO_URL = 'https://www.coingecko.com'
 
-parser = argparse.ArgumentParser(description="Useful information: 'd' and 'D' are mutually exclusive and only one of them is expected at most.")
+parser = argparse.ArgumentParser(description="Useful information: 'd' and 'D' are mutually exclusive and \
+only one of them is expected at most.")
 parser.add_argument('-k', '--coins', type=int, metavar='', help='Input how many coins, from 1 to 100, \
 you would like to see (default: k=100).')
 
@@ -107,7 +108,7 @@ def web_scraper(url, soup, k, days, date):
     @param date: argument passed by the user, specifies from which date of data to save in the dataframe
     @return: a Pandas dataframe with relevant info about each coin and another one with their historical data
     """
-    scraped_links = soup.find_all('a', class_= "tw-flex tw-items-start md:tw-flex-row tw-flex-col")
+    scraped_links = soup.find_all('a', class_="tw-flex tw-items-start md:tw-flex-row tw-flex-col")
     list_of_lists = list()
     df_historical = None
     print('Information being retrieved...')
@@ -123,7 +124,7 @@ def web_scraper(url, soup, k, days, date):
         price, market_cap = (None, None)
 
         for value in range(2):
-            for index in range(4,7):
+            for index in range(4, 7):
                 try:
                     if value == 0:
                         price = price_scraper(dom, index)
