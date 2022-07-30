@@ -2,11 +2,13 @@ import os
 import requests
 import argparse
 import pandas as pd
+import re
 from bs4 import BeautifulSoup
 from lxml import etree
 from urllib.request import Request, urlopen
 from datetime import datetime
 from tqdm import tqdm
+
 
 COINGECKO_URL = 'https://www.coingecko.com'
 
@@ -173,6 +175,11 @@ def main():
 
     if k not in range(1, 101):
         print('ERROR: The value of k must be an integer from 1 to 100.')
+        return
+
+    x = re.search('^\d{4}-\d{2}-\d{2}$', date)
+    if x is None:
+        print("ERROR: The date's format should be of the form YYYY-MM-DD.")
         return
 
     # TODO: Add handling errors when format of days and date is not correct.
