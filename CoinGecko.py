@@ -86,7 +86,7 @@ def temp_df_creator(coin_name, csv_file, days, date):
         temp_df = pd.read_csv(f'csv_{coin_name}').tail(days)
     elif date is not None:
         today = datetime.today()
-        date = datetime.strptime(date, '%Y-%m-%d')
+        # date = datetime.strptime(date, '%Y-%m-%d')
         delta = (today - date).days + 1
         temp_df = pd.read_csv(f'csv_{coin_name}').tail(delta)
     else:
@@ -172,14 +172,18 @@ def main():
 
     if k is None:
         k = 100
-
     if k not in range(1, 101):
         print('ERROR: The value of k must be an integer from 1 to 100.')
         return
 
-    x = re.search('^\d{4}-\d{2}-\d{2}$', date)
-    if x is None:
+    date_correct = re.search('^\d{4}-\d{2}-\d{2}$', date)
+    if date_correct is None:
         print("ERROR: The date's format should be of the form YYYY-MM-DD.")
+        return
+    try:
+        date = datetime.strptime(date, '%Y-%m-%d')
+    except ValueError:
+        print("ERROR: The date is invalid.")
         return
 
     # TODO: Add handling errors when format of days and date is not correct.
