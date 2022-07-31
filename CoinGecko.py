@@ -56,7 +56,7 @@ def market_scraper(dom, index):
     return dom.xpath(f'/html/body/div[5]/div[{index}]/div[1]/div/div[2]/div[2]/div[1]/div[1]/span[2]/span')[-1].text
 
 
-def csv_scraper(url_historical):
+def csv_reader(url_historical):
     """
     Performs the request to get the historical data, parses it and reads the csv file from the URL.
     @param url_historical: URL of the historical data of a coin
@@ -71,7 +71,7 @@ def csv_scraper(url_historical):
     return csv_file
 
 
-def temp_df_creator(coin_index, csv_file, days, date):
+def create_temp_df(coin_index, csv_file, days, date):
     """
     Creates a csv file of the coin's historical data, creates a temporary dataframe and removes the csv file.
     @param coin_index: index of the coin
@@ -105,7 +105,7 @@ def temp_df_creator(coin_index, csv_file, days, date):
 def web_scraper(url, soup, k, days, date):
     """
     Parses the data and creates a Pandas dataframe with the main information of each coin.
-    Calls functions price_scraper, market_scraper, csv_scraper and temp_df_creator in the process.
+    Calls functions price_scraper, market_scraper, csv_reader and create_temp_df in the process.
     @param url: main webpage's url
     @param soup: Beautiful Soup object created with the requests module
     @param k: argument passed by the user, specifies the number of coins selected
@@ -143,9 +143,9 @@ def web_scraper(url, soup, k, days, date):
 
         url_historical = coin_url + '/historical_data#panel'
 
-        csv_file = csv_scraper(url_historical)
+        csv_file = csv_reader(url_historical)
 
-        temp_df = temp_df_creator(coin_index, csv_file, days, date)
+        temp_df = create_temp_df(coin_index, csv_file, days, date)
 
         # Assuming Bitcoin is the #1 coin. If the flippening was to happen, the code should be revised.
         if coin_name == 'Bitcoin':
@@ -156,13 +156,10 @@ def web_scraper(url, soup, k, days, date):
     df = pd.DataFrame(list_of_lists, columns=['coin_name', 'price', 'market_cap', 'URL'])
     df.index = range(1, len(df) + 1)
 
-    df['price'] = df['price'].str.replace(',', '')
-    df['price'] = df['price'].str.replace('$', '')
-    df['price'] = df['price'].astype(float)
-
-    df['market_cap'] = df['market_cap'].str.replace(',', '')
-    df['market_cap'] = df['market_cap'].str.replace('$', '')
-    df['market_cap'] = df['market_cap'].astype(float)
+    for column in ('price', 'market_cap'):
+        df[column] = df[column].str.replace(',', '')
+        df[column] = df[column].str.replace('$', '')
+        df[column] = df[column].astype(float)
 
     print('\n')
     return df, df_historical
