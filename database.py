@@ -1,7 +1,8 @@
 import pymysql
 import pandas as pd
 
-PASSWORD = input("provide password for mySQL server:\n")
+
+PASSWORD = input("Provide password for MySQL server:\n")
 
 DB_NAME = 'crypto_currencies'
 cnx = pymysql.connect(host='localhost',
@@ -11,7 +12,10 @@ cursor = cnx.cursor()
 
 
 def create_connection(db_name=DB_NAME):
-    """creates and returns a connection and a cursor"""
+    """
+    Creates and returns a connection and a cursor
+    @param db_name: name of the database
+    """
     cnx2 = pymysql.connect(host='localhost',
                            user='root',
                            password=PASSWORD,
@@ -21,10 +25,19 @@ def create_connection(db_name=DB_NAME):
 
 
 def create_database(name=DB_NAME):
+    """
+    Creates the database
+    @param name: name of the database
+    """
     cursor.execute(f"CREATE DATABASE IF NOT EXISTS {name}")
 
 
 def create_coins_table(cnx, cursor):
+    """
+    Creates the table 'coins' in the database
+    @param cnx: connection
+    @param cursor: cursor to execute queries
+    """
     cursor.execute(f"USE {DB_NAME}")
     query = """CREATE TABLE IF NOT EXISTS coins
             (ID int NOT NULL PRIMARY KEY, coin varchar(45), price varchar(45),
@@ -34,18 +47,31 @@ def create_coins_table(cnx, cursor):
 
 
 def append_rows_to_coins(cnx, cursor, data):
+    """
+    Gets the data as a Pandas dataframe with columns:
+    ['index', 'coin_name', 'price', 'market_cap', 'URL'].
+    Inserts it into the 'coins' table
+    @param cnx: connection
+    @param cursor: cursor to execute queries
+    @param data: Pandas dataframe
+    """
     data = data.values.tolist()
     query = """REPLACE INTO coins (ID, coin, price, market_cap, coin_url)
                VALUES (%s, %s, %s, %s, %s)"""
     try:
         cursor.executemany(query, data)
-        print(f"{len(data)} rows were successfully uploaded")
+        print(f"{len(data)} rows were successfully uploaded to the coins table")
     except:
-        print("it didn't upload correctly")
+        print("Rows were not appended correctly to the coins table")
     cnx.commit()
 
 
 def create_history_table(cnx, cursor):
+    """
+    Creates the table 'history' in the database
+    @param cnx: connection
+    @param cursor: cursor to execute queries
+    """
     cursor.execute(f"USE {DB_NAME}")
     query = """CREATE TABLE history
             (ID int, date varchar(45), price varchar(45),
@@ -56,6 +82,14 @@ def create_history_table(cnx, cursor):
 
 
 def append_rows_to_history(cnx, cursor, data):
+    """
+    Gets the data as a Pandas dataframe with columns:
+    ['snapped_at', 'price', 'market_cap', 'total_volume', 'coin_id'].
+    Inserts it into the 'history' table
+    @param cnx: connection
+    @param cursor: cursor to execute queries
+    @param data: Pandas dataframe
+    """
     data = data.to_dict('records')
     print(data[:3])
     query = """REPLACE INTO history (ID, price, market_cap, volume_of_flow, date)
@@ -64,28 +98,48 @@ def append_rows_to_history(cnx, cursor, data):
         cursor.executemany(query, data)
         print(f"{len(data)} rows were successfully uploaded to the history table")
     except:
-        print("it didn't upload correctly")
+        print("Rows were not appended correctly to the history table")
     cnx.commit()
 
 
 def show_tables(cnx, cursor):
+    """
+    Prints the tables inside the database
+    @param cnx: connection
+    @param cursor: cursor to execute queries
+    """
     cursor.execute(f"USE {DB_NAME}")
     cursor.execute("SHOW TABLES")
     print(cursor.fetchall())
 
 
 def show_table(cnx, cursor, table_name):
+    """
+    Prints the content of the table provided
+    @param cnx: connection
+    @param cursor: cursor to execute queries
+    @param table_name: table provided from the database
+    """
     cursor.execute(f"SELECT * FROM {table_name}")
     print(f"content of {table_name}")
     print(cursor.fetchall())
 
 
 def close_connection(cnx, cursor):
+    """
+    Performs the commit and closes the connection
+    @param cnx: connection
+    @param cursor: cursor to execute queries
+    """
     cnx.commit()
     cursor.close()
 
 
 def init():
+    """
+    Initializes by creating the database and the tables
+    @return: the connection and the cursor
+    """
     cnx = pymysql.connect(host='localhost',
                           user='root',
                           password=PASSWORD)
@@ -95,22 +149,29 @@ def init():
         close_connection(cnx, cursor)
         print("DB created")
     except:
-        print("didn't created DB")
+        print("DB was not created")
     cnx, cursor = create_connection()
     try:
         create_coins_table(cnx, cursor)
     except:
-        print("didn't created coins")
+        print("Coins table was not created")
 
     try:
         create_history_table(cnx, cursor)
     except:
-        print("didn't created history")
+        print("History table was not created")
     cnx.commit()
     return cnx, cursor
 
 
 def main(df, df_hist):
+    """
+    Main function of the module:
+    - receives two dataframes,
+    - fills empty cells with the above value
+    @param df: main dataframe of the coins
+    @param df_hist: dataframe with historical values of the coins
+    """
     cnx, cursor = init()
     df_hist.fillna(method='ffill', inplace=True)
     append_rows_to_coins(cnx, cursor, df)
