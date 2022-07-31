@@ -8,7 +8,7 @@ DB_NAME = 'crypto_currencies'
 
 cnx = pymysql.connect(host='localhost',
                       user='root',
-                      password='kaBoom93')
+                      password='*****')
 cursor = cnx.cursor()
 
 
