@@ -20,6 +20,10 @@ pip install -r requirements.txt
 
 There are two versions of the file, .py (the main one) and .ipynb, being the latter one not updated and just builds a Pandas dataframe according to the 'milestone 1' of ITC's instructions.
 
+The main file CoinGecko.py is intended to be run from the CLI.
+
+CoinGecko.py imports database.py to run the SQL queries. 
+
 *This repo is in 'milestone 2' stage and will keep being updated.*
 
 For link to repo, [click here](https://github.com/hmatzner/CoinGecko).

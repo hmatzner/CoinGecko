@@ -118,7 +118,6 @@ def web_scraper(url, soup, n, days, date):
 
     for coin_index, link in tqdm(enumerate(scraped_links[:n], 1), total=n):
         coin_name = link.findChild().text.strip()
-        # coin_name = coin.text.strip() We leave this piece of code here in case the class in the webpage is modified.
 
         coin_url = url + link['href']
         soup_coin = get_soup(coin_url)
