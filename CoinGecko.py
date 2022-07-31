@@ -93,8 +93,6 @@ def create_temp_df(coin_index, csv_file, days, date):
         temp_df = pd.read_csv(f'csv_{coin_index}')
 
     temp_df['coin_id'] = coin_index
-    temp_df['price'] = temp_df['price'].round(2)
-    temp_df.reset_index(drop=True, inplace=True)
 
     # print(temp_df['market_cap'].dtypes, temp_df['price'].dtypes, temp_df['total_volume'].dtypes)
     os.remove(f'csv_{coin_index}')
@@ -157,9 +155,12 @@ def web_scraper(url, soup, k, days, date):
     df.index = range(1, len(df) + 1)
 
     for column in ('price', 'market_cap'):
-        df[column] = df[column].str.replace(',', '')
-        df[column] = df[column].str.replace('$', '')
+        df[column] = df[column].str.replace(',', '', regex=False)
+        df[column] = df[column].str.replace('$', '', regex=False)
         df[column] = df[column].astype(float)
+
+    df_historical['price'] = df_historical['price'].round(2)
+    df_historical.reset_index(drop=True, inplace=True)
 
     print('\n')
     return df, df_historical
