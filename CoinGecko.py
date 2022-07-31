@@ -71,29 +71,29 @@ def csv_scraper(url_historical):
     return csv_file
 
 
-def temp_df_creator(coin_name, csv_file, days, date):
+def temp_df_creator(coin_index, csv_file, days, date):
     """
     Creates a csv file of the coin's historical data, creates a temporary dataframe and removes the csv file.
-    @param coin_name: name of the coin
+    @param coin_index: index of the coin
     @param csv_file: csv format file of the coin's historical data
     @param days: argument passed by the user, specifies how many days of data to save in the dataframe
     @param date: argument passed by the user, specifies from which date of data to save in the dataframe
     @return: a temporary dataframe
     """
-    with open(f'csv_{coin_name}', 'wb') as f:
+    with open(f'csv_{coin_index}', 'wb') as f:
         f.write(csv_file)
 
     if days is not None:
-        temp_df = pd.read_csv(f'csv_{coin_name}').tail(days)
+        temp_df = pd.read_csv(f'csv_{coin_index}').tail(days)
     elif date is not None:
         today = datetime.today()
         delta = (today - date).days + 1
-        temp_df = pd.read_csv(f'csv_{coin_name}').tail(delta)
+        temp_df = pd.read_csv(f'csv_{coin_index}').tail(delta)
     else:
-        temp_df = pd.read_csv(f'csv_{coin_name}')
+        temp_df = pd.read_csv(f'csv_{coin_index}')
 
-    temp_df['Coin'] = coin_name
-    os.remove(f'csv_{coin_name}')
+    temp_df['coin_id'] = coin_index
+    os.remove(f'csv_{coin_index}')
 
     return temp_df
 
@@ -114,7 +114,7 @@ def web_scraper(url, soup, k, days, date):
     df_historical = None
     print('Information being retrieved...')
 
-    for link in tqdm(scraped_links[:k], total=k):
+    for coin_index, link in tqdm(enumerate(scraped_links[:k], 1), total=k):
         coin_name = link.findChild().text.strip()
         # coin_name = coin.text.strip() We leave this piece of code here in case the class in the webpage is modified.
 
@@ -141,7 +141,7 @@ def web_scraper(url, soup, k, days, date):
 
         csv_file = csv_scraper(url_historical)
 
-        temp_df = temp_df_creator(coin_name, csv_file, days, date)
+        temp_df = temp_df_creator(coin_index, csv_file, days, date)
 
         # Assuming Bitcoin is the #1 coin. If the flippening was to happen, the code should be revised.
         if coin_name == 'Bitcoin':
@@ -149,11 +149,8 @@ def web_scraper(url, soup, k, days, date):
         else:
             df_historical = pd.concat([df_historical, temp_df])
 
-    df = pd.DataFrame(list_of_lists, columns=['Coin', 'Price', 'Market Cap', 'URL'])
+    df = pd.DataFrame(list_of_lists, columns=['coin_name', 'price', 'market_cap', 'URL'])
     df.index = range(1, len(df) + 1)
-    df.reset_index(level=0, inplace=True)
-    df.rename(columns={'index': '#'}, inplace=True)
-    df.set_index('Coin', inplace=True)
 
     print('\n')
     return df, df_historical
