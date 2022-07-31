@@ -171,9 +171,8 @@ def main():
     Main function of the module:
     - checks all three possible arguments provided by the user have an expected value, giving an error message if needed
     - calls the get_soup and web_scraper functions
-    - prints the two dataframes returned by the web_scraped function
+    - returns the two dataframes returned by the web_scraped function
     """
-    # TODO: revise this docstring when finished.
     n = args.coins
     days = args.days
     date = args.date
