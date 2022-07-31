@@ -8,6 +8,7 @@ from lxml import etree
 from urllib.request import Request, urlopen
 from datetime import datetime
 from tqdm import tqdm
+import database
 
 
 COINGECKO_URL = 'https://www.coingecko.com'
@@ -201,11 +202,10 @@ def main():
     url, soup = get_soup(COINGECKO_URL)
     df, df_historical = web_scraper(url, soup, n, days, date)
 
-    # return df, df_historical
-    print(df)
-    print('\n')
-    print(df_historical)
+    return df, df_historical
 
 
 if __name__ == '__main__':
-    main()
+    df, df_hist = main()
+    # Saving to SQL
+    database.main(df, df_hist)
