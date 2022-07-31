@@ -152,6 +152,7 @@ def web_scraper(url, soup, n, days, date):
 
     df = pd.DataFrame(list_of_lists, columns=['coin_name', 'price', 'market_cap', 'URL'])
     df.index = range(1, len(df) + 1)
+    df.reset_index(inplace=True)
 
     for column in ('price', 'market_cap'):
         df[column] = df[column].str.replace(',', '', regex=False)
@@ -160,6 +161,10 @@ def web_scraper(url, soup, n, days, date):
 
     df_historical['price'] = df_historical['price'].round(2)
     df_historical.reset_index(drop=True, inplace=True)
+    df_historical['snapped_at'] = df_historical['snapped_at'].str.replace(' 00:00:00 UTC', '')
+    df_historical['snapped_at'] = pd.to_datetime(df_historical['snapped_at'])
+
+    print(df_historical.dtypes)
 
     print('\n')
     return df, df_historical
@@ -200,6 +205,8 @@ def main():
 
     url, soup = get_soup(COINGECKO_URL)
     df, df_historical = web_scraper(url, soup, n, days, date)
+
+    # return df, df_historical
     print(df)
     print('\n')
     print(df_historical)
@@ -207,3 +214,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
