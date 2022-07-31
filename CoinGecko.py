@@ -14,8 +14,8 @@ COINGECKO_URL = 'https://www.coingecko.com'
 
 parser = argparse.ArgumentParser(description="Useful information: 'd' and 'D' are mutually exclusive and \
 only one of them is expected at most.")
-parser.add_argument('-k', '--coins', type=int, metavar='', help='Input how many coins, from 1 to 100, \
-you would like to see (default: k=100).')
+parser.add_argument('-n', '--coins', type=int, metavar='', help='Input how many coins, from 1 to 100, \
+you would like to see (default: n=100).')
 
 group = parser.add_mutually_exclusive_group()
 group.add_argument('-d', '--days', type=int, metavar='', help='Input number of days of historical \
@@ -94,19 +94,18 @@ def create_temp_df(coin_index, csv_file, days, date):
 
     temp_df['coin_id'] = coin_index
 
-    # print(temp_df['market_cap'].dtypes, temp_df['price'].dtypes, temp_df['total_volume'].dtypes)
     os.remove(f'csv_{coin_index}')
 
     return temp_df
 
 
-def web_scraper(url, soup, k, days, date):
+def web_scraper(url, soup, n, days, date):
     """
     Parses the data and creates a Pandas dataframe with the main information of each coin.
     Calls functions price_scraper, market_scraper, csv_reader and create_temp_df in the process.
     @param url: main webpage's url
     @param soup: Beautiful Soup object created with the requests module
-    @param k: argument passed by the user, specifies the number of coins selected
+    @param n: argument passed by the user, specifies the number of coins selected
     @param days: argument passed by the user, specifies how many days of data to save in the dataframe
     @param date: argument passed by the user, specifies from which date of data to save in the dataframe
     @return: a Pandas dataframe with relevant info about each coin and another one with their historical data
@@ -116,7 +115,7 @@ def web_scraper(url, soup, k, days, date):
     df_historical = None
     print('Information being retrieved...')
 
-    for coin_index, link in tqdm(enumerate(scraped_links[:k], 1), total=k):
+    for coin_index, link in tqdm(enumerate(scraped_links[:n], 1), total=n):
         coin_name = link.findChild().text.strip()
         # coin_name = coin.text.strip() We leave this piece of code here in case the class in the webpage is modified.
 
@@ -174,13 +173,13 @@ def main():
     - prints the two dataframes returned by the web_scraped function
     """
     # TODO: revise this docstring when finished.
-    k = args.coins
+    n = args.coins
     days = args.days
     date = args.date
 
-    if k is None:
-        k = 100
-    if k not in range(1, 101):
+    if n is None:
+        n = 100
+    if n not in range(1, 101):
         print("ERROR: The value of the argument 'coins' must be an integer from 1 to 100.")
         return
 
@@ -200,7 +199,7 @@ def main():
         return
 
     url, soup = get_soup(COINGECKO_URL)
-    df, df_historical = web_scraper(url, soup, k, days, date)
+    df, df_historical = web_scraper(url, soup, n, days, date)
     print(df)
     print('\n')
     print(df_historical)
