@@ -161,10 +161,6 @@ def web_scraper(url, soup, n, days, date):
 
     df_historical['price'] = df_historical['price'].round(2)
     df_historical.reset_index(drop=True, inplace=True)
-    df_historical['snapped_at'] = df_historical['snapped_at'].str.replace(' 00:00:00 UTC', '')
-    df_historical['snapped_at'] = pd.to_datetime(df_historical['snapped_at'])
-
-    print(df_historical.dtypes)
 
     print('\n')
     return df, df_historical
