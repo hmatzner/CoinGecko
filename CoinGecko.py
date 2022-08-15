@@ -1,10 +1,30 @@
+import os
 import requests
+import argparse
+import pandas as pd
+import re
 from bs4 import BeautifulSoup
 from lxml import etree
-import pandas as pd
+from urllib.request import Request, urlopen
+from datetime import datetime
 from tqdm import tqdm
+from database_object import Database
+
 
 COINGECKO_URL = 'https://www.coingecko.com'
+
+parser = argparse.ArgumentParser(description="Useful information: 'd' and 'D' are mutually exclusive and \
+only one of them is expected at most.")
+parser.add_argument('-n', '--coins', type=int, metavar='', help='Input how many coins, from 1 to 100, \
+you would like to see (default: n=100).')
+
+group = parser.add_mutually_exclusive_group()
+group.add_argument('-d', '--days', type=int, metavar='', help='Input number of days of historical \
+data you want to see (default: maximum available for each coin).')
+group.add_argument('-D', '--date', type=str, metavar='', help='Input from which date you want to see \
+the historical data (format: YYYY-MM-DD, default: maximum available for each coin).')
+
+args = parser.parse_args()
 
 
 def get_soup(url):
@@ -37,28 +57,77 @@ def market_scraper(dom, index):
     return dom.xpath(f'/html/body/div[5]/div[{index}]/div[1]/div/div[2]/div[2]/div[1]/div[1]/span[2]/span')[-1].text
 
 
-def web_scraper(url, soup, k):
+def csv_reader(url_historical):
+    """
+    Performs the request to get the historical data, parses it and reads the csv file from the URL.
+    @param url_historical: URL of the historical data of a coin
+    @return: a csv file
+    """
+    r = requests.get(url_historical)
+    html = r.text
+    soup_historical = BeautifulSoup(html, 'lxml')
+    historical_links = soup_historical.find_all('a', class_='dropdown-item')[-1]['href']
+    req = Request(COINGECKO_URL + historical_links, headers={'User-Agent': 'Mozilla/5.0'})
+    csv_file = urlopen(req).read()
+    return csv_file
+
+
+def create_temp_df(coin_index, csv_file, days, date):
+    """
+    Creates a csv file of the coin's historical data, creates a temporary dataframe and removes the csv file.
+    @param coin_index: index of the coin
+    @param csv_file: csv format file of the coin's historical data
+    @param days: argument passed by the user, specifies how many days of data to save in the dataframe
+    @param date: argument passed by the user, specifies from which date of data to save in the dataframe
+    @return: a temporary dataframe
+    """
+    with open(f'csv_{coin_index}', 'wb') as f:
+        f.write(csv_file)
+
+    if days is not None:
+        temp_df = pd.read_csv(f'csv_{coin_index}').tail(days)
+    elif date is not None:
+        today = datetime.today()
+        delta = (today - date).days + 1
+        temp_df = pd.read_csv(f'csv_{coin_index}').tail(delta)
+    else:
+        temp_df = pd.read_csv(f'csv_{coin_index}')
+
+    temp_df['coin_id'] = coin_index
+
+    os.remove(f'csv_{coin_index}')
+
+    return temp_df
+
+
+def web_scraper(url, soup, n, days, date):
     """
     Parses the data and creates a Pandas dataframe with the main information of each coin.
+    Calls functions price_scraper, market_scraper, csv_reader and create_temp_df in the process.
     @param url: main webpage's url
     @param soup: Beautiful Soup object created with the requests module
-    @param k: number of coins the user selected to see
-    @return: a Pandas dataframe
+    @param n: argument passed by the user, specifies the number of coins selected
+    @param days: argument passed by the user, specifies how many days of data to save in the dataframe
+    @param date: argument passed by the user, specifies from which date of data to save in the dataframe
+    @return: a Pandas dataframe with relevant info about each coin and another one with their historical data
     """
-    scraped_coins = soup.find_all('a', class_= "lg:tw-flex font-bold tw-items-center tw-justify-between")
+    scraped_links = soup.find_all('a', class_="tw-flex tw-items-start md:tw-flex-row tw-flex-col")
     list_of_lists = list()
-
+    df_historical = None
     print('Information being retrieved...')
 
-    for coin in tqdm(scraped_coins[:k], total=k):
-        coin_name = coin.text.strip()
-        coin_url = url + coin['href']
+    for coin_index, link in tqdm(enumerate(scraped_links[:n], 1), total=n):
+        coin_name = link.findChild().text.strip()
+        # coin_name = coin.text.strip() We leave this piece of code here in case the class in the webpage is modified.
+
+        coin_url = url + link['href']
         soup_coin = get_soup(coin_url)
         dom = etree.HTML(str(soup_coin))
-        price, market_cap = 0, 0
+
+        price, market_cap = (None, None)
 
         for value in range(2):
-            for index in range(4,7):
+            for index in range(4, 7):
                 try:
                     if value == 0:
                         price = price_scraper(dom, index)
@@ -70,30 +139,76 @@ def web_scraper(url, soup, k):
 
         list_of_lists.append([coin_name, price, market_cap, coin_url])
 
-    df = pd.DataFrame(list_of_lists, columns=['Coin', 'Price', 'Market Cap', 'URL'])
-    df.index = range(1, len(df) + 1)
+        url_historical = coin_url + '/historical_data#panel'
 
+        csv_file = csv_reader(url_historical)
+
+        temp_df = create_temp_df(coin_index, csv_file, days, date)
+
+        # Assuming Bitcoin is the #1 coin. If the flippening was to happen, the code should be revised.
+        if coin_name == 'Bitcoin':
+            df_historical = temp_df
+        else:
+            df_historical = pd.concat([df_historical, temp_df])
+
+    df = pd.DataFrame(list_of_lists, columns=['coin_name', 'price', 'market_cap', 'URL'])
+    df.index = range(1, len(df) + 1)
+    df.reset_index(inplace=True)
+
+    for column in ('price', 'market_cap'):
+        df[column] = df[column].str.replace(',', '', regex=False)
+        df[column] = df[column].str.replace('$', '', regex=False)
+        df[column] = df[column].astype(float)
+
+    df_historical['price'] = df_historical['price'].round(2)
+    df_historical.reset_index(drop=True, inplace=True)
     print('\n')
-    return df
+    return df, df_historical
 
 
 def main():
     """
     Main function of the module:
-    - asks the user how many coins to get info about
-    - calls the other functions and prints a dataframe
+    - checks all three possible arguments provided by the user have an expected value, giving an error message if needed
+    - calls the get_soup and web_scraper functions
+    - prints the two dataframes returned by the web_scraped function
     """
+    # TODO: revise this docstring when finished.
+    n = args.coins
+    n=3
+    days = args.days
+    date = args.date
+
+    if n is None:
+        n = 100
+    if n not in range(1, 101):
+        print("ERROR: The value of the argument 'coins' must be an integer from 1 to 100.")
+        return
+
+    if date is not None:
+        date_correct = re.search('^\\d{4}-\\d{2}-\\d{2}$', date)
+        if date_correct is None:
+            print("ERROR: The format of the argument 'date' should be YYYY-MM-DD.")
+            return
+        try:
+            date = datetime.strptime(date, '%Y-%m-%d')
+        except ValueError:
+            print("ERROR: The argument 'date' is invalid.")
+            return
+
+    if days is not None and days < 0:
+        print("ERROR: The argument 'days' should be a non-negative integer.")
+        return
+
     url, soup = get_soup(COINGECKO_URL)
-    while True:
-        k = input('Indicate how many coins, from 1 to 100, you would like to see: ')
-        if k in map(str, range(1, 101)):
-            k = int(k)
-            break
-        else:
-            print('The value must be an integer from 1 to 100.')
-    df = web_scraper(url, soup, k)
-    print(df)
+    df, df_historical = web_scraper(url, soup, n, days, date)
+    return df, df_historical
 
 
 if __name__ == '__main__':
-    main()
+    df, df_hist = main()
+    # saving to SQL
+    db = Database()
+    db.append_rows_to_coins(df)
+    db.append_rows_to_history(df_hist)
+    
