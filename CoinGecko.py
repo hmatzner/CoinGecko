@@ -288,8 +288,8 @@ def main():
     url, soup = get_soup(COINGECKO_URL)
     df_coins, df_historical, df_wallets = web_scraper(url, soup, f, t, days, date)
 
-    return df_coins, df_historical, df_wallets
-
+    # return df_coins, df_historical, df_wallets
+    return df_coins, df_historical
 
 if __name__ == '__main__':
     main()
@@ -299,3 +299,9 @@ if __name__ == '__main__':
     # db = Database()
     # db.append_rows_to_coins(coins)
     # db.append_rows_to_history(historical_data)
+    df, df_hist = main()
+    print(f"within CoinGecko:\n{df}", end='\n\n')
+    # saving to SQL
+    db = Database()
+    db.append_rows_to_coins(df)
+    db.append_rows_to_history(df_hist)
