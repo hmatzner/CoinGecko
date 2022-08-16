@@ -11,12 +11,12 @@ class Database:
                 self.PASSWORD = f.read()
         except FileNotFoundError:
             self.PASSWORD = input("provide password for mySQL server: ")
-        self.db_name=db_name
-        
+        self.db_name = db_name
+
         self.connection = self.create_connection(use_db=False)
         self.cursor = self.connection.cursor()
         self.create_database()
-        
+
         self.cursor.execute("SHOW TABLES")
         tables = self.cursor.fetchall()
         if ('coins',) not in tables:
@@ -27,7 +27,7 @@ class Database:
             self.create_history_table()
         else:
             print("history table was already existed")
-        
+
         if df:
             self.append_rows_to_coins(df)
         if df_hist:
@@ -48,11 +48,11 @@ class Database:
     def create_database(self):
         self.cursor.execute("SHOW DATABASES")
         database_existed = self.cursor.fetchall()
-        if (self.db_name, ) in database_existed:
-            print ("Database already exist")
+        if (self.db_name,) in database_existed:
+            print("Database already exist")
             self.cursor.execute(f"USE {self.db_name}")
         else:
-            self.cursor.execute(f"CREATE DATABASE IF NOT EXISTS {self.DB_NAME}")
+            self.cursor.execute(f"CREATE DATABASE {self.DB_NAME}")
             self.connection.commit()
             print("Database created")
             self.cursor.execute(f"USE {self.DB_NAME}")
@@ -65,7 +65,7 @@ class Database:
         self.cursor.execute(query)
         self.connection.commit()
         print("coins table created")
-        
+
     def create_history_table(self):
         query = """CREATE TABLE IF NOT EXISTS history
                     (ID int, date varchar(45), price varchar(45),
@@ -95,14 +95,14 @@ class Database:
         print(f"existing coins: {data.loc[index_of_existing_coins, :]}")
         data_to_append = data[~index_of_existing_coins]
         data_to_update = data[index_of_existing_coins]
-        
+
         query = """INSERT INTO coins (ID, coin_name, price, market_cap, coin_url)
                     VALUES (%s, %s, %s, %s, %s)"""
         data = data_to_append.values.tolist()
         self.cursor.executemany(query, data)
         self.connection.commit()
-        print (f"{len(data_to_append)} rows were successfully uploaded")
-        
+        print(f"{len(data_to_append)} rows were successfully uploaded")
+
         query = """UPDATE coins
                     SET price = %(price)s, market_cap = %(market_cap)s
                     WHERE coin_name = %(coin_name)s"""
@@ -120,35 +120,20 @@ class Database:
         try:
             self.cursor.executemany(query, data)
             self.connection.commit()
-            print (f"{len(data)} rows were successfully uploaded to the history table")
+            print(f"{len(data)} rows were successfully uploaded to the history table")
         except:
-            print ("appending to history didn't successed")        
-        
+            print("appending to history didn't successed")
+
     def show_tables(self):
         self.cursor.execute("SHOW TABLES")
         print(self.cursor.fetchall())
-    
+
     def show_table(self, table_name):
         self.cursor.execute(f"SELECT * FROM {table_name}")
         print(f"content of {table_name}")
         print(self.cursor.fetchall())
-    
+
     def close_connection(self):
         self.cursor.close()
         self.connection.close()
-        print ("connection closed")
-    
-# def main(df, df_hist):
-#     connection, cursor = init()
-#     df_hist.fillna(method='ffill', inplace=True)
-#     append_rows_to_coins(connection, cursor, df)
-#     append_rows_to_history(connection, cursor, df_hist)
-#     close_connection(connection, cursor)
-
-
-# if __name__=='__main__':
-#     pass
-    # df, df_hist = CoinGecko.main()
-    # df_hist.fillna(method='ffill', inplace=True)
-
-db = Database()
+        print("connection closed")
