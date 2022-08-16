@@ -41,7 +41,6 @@ def get_soup(url):
     r = requests.get(url)
     html = r.text
     soup = BeautifulSoup(html, 'lxml')
-    # print(type(soup))
     return url, soup
 
 
@@ -75,6 +74,7 @@ def csv_reader(url_historical):
     historical_links = soup_historical.find_all('a', class_='dropdown-item')[-1]['href']
     req = Request(COINGECKO_URL + historical_links, headers={'User-Agent': 'Mozilla/5.0'})
     csv_file = urlopen(req).read()
+
     return csv_file
 
 
@@ -116,37 +116,14 @@ def wallets_scraper(coin_url, dom):
     html = requests.get(coin_url)
     doc = lxml.html.fromstring(html.content)
     div_wallet = doc.xpath('//div[@class="coin-link-row tw-mb-0"]')[0]
-    wallet = div_wallet.xpath('//span[@class="tw-self-start tw-py-1 tw-my-0.5 tw-min-w-3/10 2xl:tw-min-w-1/4 tw-text-gray-500 dark:tw-text-white dark:tw-text-opacity-60 tw-mr-2"]/text()')
-    # print(f'Wallet is: {wallet}')
-    # print(f'Wallet type is: {type(wallet)}')
+    wallet = div_wallet.xpath('//span[@class="tw-self-start tw-py-1 tw-my-0.5 tw-min-w-3/10 2xl:tw-min-w-1/4'
+                              ' tw-text-gray-500 dark:tw-text-white dark:tw-text-opacity-60 tw-mr-2"]/text()')
 
     if not wallet:
         return
 
-    # html = requests.get(coin_url)
-    # doc = lxml.html.fromstring(html.content)
-    # is_wallet = doc.xpath('//div[@class="coin-link-row tw-mb-0"]')[0]
-    # yes_is_wallet = is_wallet.xpath('//span[@class="tw-self-start tw-py-1 tw-my-0.5 tw-min-w-3/10 2xl:tw-min-w-1/4 tw-text-gray-500 dark:tw-text-white dark:tw-text-opacity-60 tw-mr-2"]')
-    # # print(yes_is_wallet)
-    # wallet = list()
-    # for i in yes_is_wallet:
-    #     wallet.append(i.xpath('//a[@class="tw-px-2.5 tw-py-1 tw-my-0.5 tw-mr-1 tw-rounded-md tw-text-sm tw-font-medium tw-bg-gray-100 tw-text-gray-800 hover:tw-bg-gray-200 dark:tw-text-white dark:tw-bg-white dark:tw-bg-opacity-10 dark:hover:tw-bg-opacity-20 dark:focus:tw-bg-opacity-20 "]/text()'))
-    # print(f'Wallet is: {wallet}')
-    # print(f'Wallet type is: {type(wallet)}')
-
-    # span_wallets = list()
-    # for i in div_wallet:
-    #     span_wallets.append(i.xpath('//span[@class="tw-self-start tw-py-1 tw-my-0.5 tw-min-w-3/10 2xl:tw-min-w-1/4 tw-text-gray-500 dark:tw-text-white dark:tw-text-opacity-60 tw-mr-2"]/text()'))
-    # print(f'Wallet is: {span_wallets}')
-    # print(f'Wallet type is: {type(span_wallets)}')
-    # return
-
-    # while True:
-    #     current_item = dom.findtext('a')
-    #     print('text found is', current_item)
-    #     break
-
     wallets = list()
+
     # There are three possible xPath for each coin, being two of them the same
     # except for one of the indexes that could be 4 or 5.
     for index_xpath in range(4, 6):
@@ -154,13 +131,12 @@ def wallets_scraper(coin_url, dom):
         try:
             while True:
                 wallets.append(dom.xpath(f'/html/body/div[5]/div[4]/div[2]/div[2]/div[{index_xpath}]/div/a[{index}]')[-1].text)
-                # print(list_of_w)
                 index += 1
         except IndexError:
-            # print(f'the index is {index}')
             if index != 1:
                 return wallets
-    # This is the other possible XPath that a coin could have:
+
+    # This is the third possible XPath that a coin could have:
     try:
         wallets.append(dom.xpath(f'/html/body/div[5]/div[5]/div[2]/div[2]/div[5]/div/a')[-1].text)
         return wallets
@@ -181,26 +157,25 @@ def web_scraper(url, soup, f, t, days, date):
     @return: a Pandas dataframe with relevant info about each coin and another one with their historical data
     """
     scraped_links = soup.find_all('a', class_="tw-flex tw-items-start md:tw-flex-row tw-flex-col")
-    list_of_lists = list()
+
+    list_of_coins = list()
     list_of_wallets = list()
     coin_id = 0
     df_historical = None
+
     print('Information being retrieved...')
 
-    # for coin_id, link in tqdm(enumerate(scraped_links[f: t], 1), total=t-f):
     for link in tqdm(scraped_links[f: t], total=t-f):
         coin_id += 1
         coin_name = link.findChild().text.strip()
         print(coin_name)
         coin_url = url + link['href']
-        soup_coin = get_soup(coin_url)
-        # print(f'type of soup coin is {type(soup_coin)}')
-        dom = etree.HTML(str(soup_coin))
-        # print(f'type of dom is {type(dom)}')
+        html_coin = get_soup(coin_url)
+        dom = etree.HTML(str(html_coin))
 
         price, market_cap, wallets_of_each_coin = (None, None, None)
 
-        # We are going to iterate over the price and the market cap.
+        # Iterating over the price and the market cap.
         for value in range(2):
             # There are three possible xPath for each coin, being each one of them the same
             # except for one of the indexes that could be 4, 5, or 6.
@@ -214,7 +189,7 @@ def web_scraper(url, soup, f, t, days, date):
                 except IndexError:
                     pass
 
-        list_of_lists.append([coin_name, price, market_cap, coin_url])
+        list_of_coins.append([coin_name, price, market_cap, coin_url])
 
         url_historical = coin_url + '/historical_data#panel'
 
@@ -230,27 +205,14 @@ def web_scraper(url, soup, f, t, days, date):
 
         wallets_of_each_coin = wallets_scraper(coin_url, dom)
 
-        # if coin_name not in ('eCash', 'Gate', 'PAX Gold', 'Tenset', 'Curve DAO'):
-        #     wallets = wallets_scraper(dom)
-        #     list_of_wallets.append(wallets)
         if wallets_of_each_coin:
             for wallet in wallets_of_each_coin:
                 list_of_wallets.append([coin_id, wallet])
 
-        # print(list_of_wallets[-1])
-
-        # list_of_lists.append([coin_name, price, market_cap, coin_url])
-
-
-    # print(list_of_wallets)
     df_wallets = pd.DataFrame(list_of_wallets, columns=['coin_id', 'wallets'])
-    # df_wallets.index = range(1, len(df_wallets) + 1)
-    # df_wallets.reset_index(inplace=True)
 
-    df_coins = pd.DataFrame(list_of_lists, columns=['coin_name', 'price', 'market_cap', 'URL'])
+    df_coins = pd.DataFrame(list_of_coins, columns=['coin_name', 'price', 'market_cap', 'URL'])
     df_coins['coin_id'] = range(1, len(df_coins) + 1)
-    # df_coins.index = range(1, len(df_coins) + 1)
-    # df_coins.reset_index(inplace=True)
 
     for column in ('price', 'market_cap'):
         df_coins[column] = df_coins[column].str.replace(',', '', regex=False)
@@ -320,7 +282,7 @@ if __name__ == '__main__':
     print(main())
     # coins, historical_data = main()
     # print(f"within CoinGecko:\n{coins}", end='\n\n')
-    # # # Saving to SQL
+    # # Saving to SQL
     # db = Database()
     # db.append_rows_to_coins(coins)
     # db.append_rows_to_history(historical_data)
