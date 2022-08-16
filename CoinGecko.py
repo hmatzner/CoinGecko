@@ -8,10 +8,11 @@ from lxml import etree
 from urllib.request import Request, urlopen
 from datetime import datetime
 from tqdm import tqdm
-import database
+from database import Database
 
 
 COINGECKO_URL = 'https://www.coingecko.com'
+MAX_NUMBER_OF_COINS = 100
 
 parser = argparse.ArgumentParser(description="Useful information: 'd' and 'D' are mutually exclusive and \
 only one of them is expected at most.")
@@ -36,6 +37,7 @@ def get_soup(url):
     r = requests.get(url)
     html = r.text
     soup = BeautifulSoup(html, 'lxml')
+    print(type(soup))
     return url, soup
 
 
@@ -100,6 +102,31 @@ def create_temp_df(coin_index, csv_file, days, date):
     return temp_df
 
 
+def wallets_scraper(coin_url, soup_coin, dom):
+    while True:
+        current_item = dom.findtext('a')
+        print('text found is', current_item)
+        break
+
+    list_of_w = list()
+    for index_xpath in range(4, 6):
+        index = 1
+        try:
+            while True:
+                list_of_w.append(dom.xpath(f'/html/body/div[5]/div[4]/div[2]/div[2]/div[{index_xpath}]/div/a[{index}]')[-1].text)
+                # print(list_of_w)
+                index += 1
+        except IndexError:
+            # print(f'the index is {index}')
+            if index != 1:
+                return list_of_w
+    try:
+        list_of_w.append(dom.xpath(f'/html/body/div[5]/div[5]/div[2]/div[2]/div[5]/div/a')[-1].text)
+        return list_of_w
+    except IndexError:
+        return None
+
+
 def web_scraper(url, soup, n, days, date):
     """
     Parses the data and creates a Pandas dataframe with the main information of each coin.
@@ -113,19 +140,25 @@ def web_scraper(url, soup, n, days, date):
     """
     scraped_links = soup.find_all('a', class_="tw-flex tw-items-start md:tw-flex-row tw-flex-col")
     list_of_lists = list()
+    list_of_wallets = list()
     df_historical = None
     print('Information being retrieved...')
 
     for coin_index, link in tqdm(enumerate(scraped_links[:n], 1), total=n):
         coin_name = link.findChild().text.strip()
-
+        print(coin_name)
         coin_url = url + link['href']
         soup_coin = get_soup(coin_url)
+        print(f'type of soup coin is {type(soup_coin)}')
         dom = etree.HTML(str(soup_coin))
+        print(f'type of dom is {type(dom)}')
 
-        price, market_cap = (None, None)
+        price, market_cap, wallets_of_each_coin = (None, None, None)
 
+        # We are going to iterate over the price and the market cap.
         for value in range(2):
+            # There are three possible xPath for each coin, being each one of them the same
+            # except for one of the indexes that could be 4, 5, or 6.
             for index in range(4, 7):
                 try:
                     if value == 0:
@@ -150,20 +183,32 @@ def web_scraper(url, soup, n, days, date):
         else:
             df_historical = pd.concat([df_historical, temp_df])
 
-    df = pd.DataFrame(list_of_lists, columns=['coin_name', 'price', 'market_cap', 'URL'])
-    df.index = range(1, len(df) + 1)
-    df.reset_index(inplace=True)
+        wallets_of_each_coin = wallets_scraper(coin_url, soup_coin, dom)
+
+        # if coin_name not in ('eCash', 'Gate', 'PAX Gold', 'Tenset', 'Curve DAO'):
+        #     wallets = wallets_scraper(dom)
+        #     list_of_wallets.append(wallets)
+        list_of_wallets.append(wallets_of_each_coin)
+
+    print(list_of_wallets)
+    df_wallets = pd.DataFrame(list_of_wallets)
+    df_wallets.index = range(1, len(df_wallets) + 1)
+    df_wallets.reset_index(inplace=True)
+
+    df_coins = pd.DataFrame(list_of_lists, columns=['coin_name', 'price', 'market_cap', 'URL'])
+    df_coins.index = range(1, len(df_coins) + 1)
+    df_coins.reset_index(inplace=True)
 
     for column in ('price', 'market_cap'):
-        df[column] = df[column].str.replace(',', '', regex=False)
-        df[column] = df[column].str.replace('$', '', regex=False)
-        df[column] = df[column].astype(float)
+        df_coins[column] = df_coins[column].str.replace(',', '', regex=False)
+        df_coins[column] = df_coins[column].str.replace('$', '', regex=False)
+        df_coins[column] = df_coins[column].astype(float)
 
     df_historical['price'] = df_historical['price'].round(2)
     df_historical.reset_index(drop=True, inplace=True)
 
     print('\n')
-    return df, df_historical
+    return df_coins, df_historical, df_wallets
 
 
 def main():
@@ -178,8 +223,8 @@ def main():
     date = args.date
 
     if n is None:
-        n = 100
-    if n not in range(1, 101):
+        n = MAX_NUMBER_OF_COINS
+    if n not in range(1, MAX_NUMBER_OF_COINS + 1):
         print("ERROR: The value of the argument 'coins' must be an integer from 1 to 100.")
         return
 
@@ -199,12 +244,15 @@ def main():
         return
 
     url, soup = get_soup(COINGECKO_URL)
-    df, df_historical = web_scraper(url, soup, n, days, date)
+    df_coins, df_historical, df_wallets = web_scraper(url, soup, n, days, date)
 
-    return df, df_historical
+    return df_coins, df_historical, df_wallets
 
 
 if __name__ == '__main__':
-    df, df_hist = main()
-    # Saving to SQL
-    database.main(df, df_hist)
+    print(main())
+    # coins, historical_data = main()
+    # # Saving to SQL
+    # db = Database()
+    # db.append_rows_to_coins(coins)
+    # db.append_rows_to_history(historical_data)
