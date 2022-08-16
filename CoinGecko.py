@@ -108,10 +108,10 @@ def create_temp_df(coin_id, csv_file, days, date):
 
 def wallets_scraper(coin_url, dom):
     """
-
-    @param coin_url:
-    @param dom:
-    @return:
+    Performs a request and gets the wallets of each coin
+    @param coin_url: url of the specific coin
+    @param dom: etree created with an XPath
+    @return: a list of wallets of the coin, or None if the coin doesn't have any
     """
     html = requests.get(coin_url)
     doc = lxml.html.fromstring(html.content)
@@ -121,7 +121,7 @@ def wallets_scraper(coin_url, dom):
     # print(f'Wallet type is: {type(wallet)}')
 
     if not wallet:
-        return None
+        return
 
     # html = requests.get(coin_url)
     # doc = lxml.html.fromstring(html.content)
@@ -146,21 +146,24 @@ def wallets_scraper(coin_url, dom):
     #     print('text found is', current_item)
     #     break
 
-    list_of_w = list()
+    wallets = list()
+    # There are three possible xPath for each coin, being two of them the same
+    # except for one of the indexes that could be 4 or 5.
     for index_xpath in range(4, 6):
         index = 1
         try:
             while True:
-                list_of_w.append(dom.xpath(f'/html/body/div[5]/div[4]/div[2]/div[2]/div[{index_xpath}]/div/a[{index}]')[-1].text)
+                wallets.append(dom.xpath(f'/html/body/div[5]/div[4]/div[2]/div[2]/div[{index_xpath}]/div/a[{index}]')[-1].text)
                 # print(list_of_w)
                 index += 1
         except IndexError:
             # print(f'the index is {index}')
             if index != 1:
-                return list_of_w
+                return wallets
+    # This is the other possible XPath that a coin could have:
     try:
-        list_of_w.append(dom.xpath(f'/html/body/div[5]/div[5]/div[2]/div[2]/div[5]/div/a')[-1].text)
-        return list_of_w
+        wallets.append(dom.xpath(f'/html/body/div[5]/div[5]/div[2]/div[2]/div[5]/div/a')[-1].text)
+        return wallets
     except IndexError:
         return None
 
@@ -230,8 +233,9 @@ def web_scraper(url, soup, f, t, days, date):
         # if coin_name not in ('eCash', 'Gate', 'PAX Gold', 'Tenset', 'Curve DAO'):
         #     wallets = wallets_scraper(dom)
         #     list_of_wallets.append(wallets)
-        for wallet in wallets_of_each_coin:
-            list_of_wallets.append([coin_id, wallet])
+        if wallets_of_each_coin:
+            for wallet in wallets_of_each_coin:
+                list_of_wallets.append([coin_id, wallet])
 
         # print(list_of_wallets[-1])
 
@@ -255,6 +259,11 @@ def web_scraper(url, soup, f, t, days, date):
 
     df_historical['price'] = df_historical['price'].round(2)
     df_historical.reset_index(drop=True, inplace=True)
+
+    # Shifting column 'coin_id' to first position in df_coins and df_historical
+    for dataframe in (df_coins, df_historical):
+        first_column = dataframe.pop('coin_id')
+        dataframe.insert(0, 'coin_id', first_column)
 
     print('\n')
     return df_coins, df_historical, df_wallets
