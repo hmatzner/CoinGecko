@@ -5,6 +5,7 @@ import pandas as pd
 import re
 from bs4 import BeautifulSoup
 from lxml import etree
+import lxml.html
 from urllib.request import Request, urlopen
 from datetime import datetime
 from tqdm import tqdm
@@ -37,7 +38,7 @@ def get_soup(url):
     r = requests.get(url)
     html = r.text
     soup = BeautifulSoup(html, 'lxml')
-    print(type(soup))
+    # print(type(soup))
     return url, soup
 
 
@@ -103,10 +104,36 @@ def create_temp_df(coin_index, csv_file, days, date):
 
 
 def wallets_scraper(coin_url, soup_coin, dom):
-    while True:
-        current_item = dom.findtext('a')
-        print('text found is', current_item)
-        break
+
+    # html = requests.get(coin_url)
+    # doc = lxml.html.fromstring(html.content)
+    # div_wallet = doc.xpath('//div[@class="coin-link-row tw-mb-0"]')[0]
+    # wallet = div_wallet.xpath('//span[@class="tw-self-start tw-py-1 tw-my-0.5 tw-min-w-3/10 2xl:tw-min-w-1/4 tw-text-gray-500 dark:tw-text-white dark:tw-text-opacity-60 tw-mr-2"]/text()')
+    # print(f'Wallet is: {wallet}')
+    # print(f'Wallet type is: {type(wallet)}')
+
+    html = requests.get(coin_url)
+    doc = lxml.html.fromstring(html.content)
+    is_wallet = doc.xpath('//div[@class="coin-link-row tw-mb-0"]')[0]
+    yes_is_wallet = is_wallet.xpath('//span[@class="tw-self-start tw-py-1 tw-my-0.5 tw-min-w-3/10 2xl:tw-min-w-1/4 tw-text-gray-500 dark:tw-text-white dark:tw-text-opacity-60 tw-mr-2"]')
+    # print(yes_is_wallet)
+    wallet = list()
+    for i in yes_is_wallet:
+        wallet.append(i.xpath('//a[@class="tw-px-2.5 tw-py-1 tw-my-0.5 tw-mr-1 tw-rounded-md tw-text-sm tw-font-medium tw-bg-gray-100 tw-text-gray-800 hover:tw-bg-gray-200 dark:tw-text-white dark:tw-bg-white dark:tw-bg-opacity-10 dark:hover:tw-bg-opacity-20 dark:focus:tw-bg-opacity-20 "]/text()'))
+    print(f'Wallet is: {wallet}')
+    print(f'Wallet type is: {type(wallet)}')
+
+    # span_wallets = list()
+    # for i in div_wallet:
+    #     span_wallets.append(i.xpath('//span[@class="tw-self-start tw-py-1 tw-my-0.5 tw-min-w-3/10 2xl:tw-min-w-1/4 tw-text-gray-500 dark:tw-text-white dark:tw-text-opacity-60 tw-mr-2"]/text()'))
+    # print(f'Wallet is: {span_wallets}')
+    # print(f'Wallet type is: {type(span_wallets)}')
+    return
+
+    # while True:
+    #     current_item = dom.findtext('a')
+    #     print('text found is', current_item)
+    #     break
 
     list_of_w = list()
     for index_xpath in range(4, 6):
@@ -149,9 +176,9 @@ def web_scraper(url, soup, n, days, date):
         print(coin_name)
         coin_url = url + link['href']
         soup_coin = get_soup(coin_url)
-        print(f'type of soup coin is {type(soup_coin)}')
+        # print(f'type of soup coin is {type(soup_coin)}')
         dom = etree.HTML(str(soup_coin))
-        print(f'type of dom is {type(dom)}')
+        # print(f'type of dom is {type(dom)}')
 
         price, market_cap, wallets_of_each_coin = (None, None, None)
 
@@ -250,7 +277,8 @@ def main():
 
 
 if __name__ == '__main__':
-    print(main())
+    main()
+    # print(main())
     # coins, historical_data = main()
     # # Saving to SQL
     # db = Database()
