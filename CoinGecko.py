@@ -13,12 +13,15 @@ from database import Database
 
 
 COINGECKO_URL = 'https://www.coingecko.com'
+MIN_NUMBER_OF_COINS = 1
 MAX_NUMBER_OF_COINS = 100
 
 parser = argparse.ArgumentParser(description="Useful information: 'd' and 'D' are mutually exclusive and \
 only one of them is expected at most.")
-parser.add_argument('-n', '--coins', type=int, metavar='', help='Input how many coins, from 1 to 100, \
-you would like to see (default: n=100).')
+parser.add_argument('-f', '--from_coin', type=int, metavar='', help='Input from which coin (1 to 100), \
+you would like to receive information about. Default value: f=1.')
+parser.add_argument('-t', '--to_coin', type=int, metavar='', help='Input until which coin (1 to 100), \
+you would like to receive information about. Default value: t=100.')
 
 group = parser.add_mutually_exclusive_group()
 group.add_argument('-d', '--days', type=int, metavar='', help='Input number of days of historical \
@@ -105,30 +108,34 @@ def create_temp_df(coin_index, csv_file, days, date):
 
 def wallets_scraper(coin_url, soup_coin, dom):
 
-    # html = requests.get(coin_url)
-    # doc = lxml.html.fromstring(html.content)
-    # div_wallet = doc.xpath('//div[@class="coin-link-row tw-mb-0"]')[0]
-    # wallet = div_wallet.xpath('//span[@class="tw-self-start tw-py-1 tw-my-0.5 tw-min-w-3/10 2xl:tw-min-w-1/4 tw-text-gray-500 dark:tw-text-white dark:tw-text-opacity-60 tw-mr-2"]/text()')
+    html = requests.get(coin_url)
+    doc = lxml.html.fromstring(html.content)
+    div_wallet = doc.xpath('//div[@class="coin-link-row tw-mb-0"]')[0]
+    wallet = div_wallet.xpath('//span[@class="tw-self-start tw-py-1 tw-my-0.5 tw-min-w-3/10 2xl:tw-min-w-1/4 tw-text-gray-500 dark:tw-text-white dark:tw-text-opacity-60 tw-mr-2"]/text()')
     # print(f'Wallet is: {wallet}')
     # print(f'Wallet type is: {type(wallet)}')
 
-    html = requests.get(coin_url)
-    doc = lxml.html.fromstring(html.content)
-    is_wallet = doc.xpath('//div[@class="coin-link-row tw-mb-0"]')[0]
-    yes_is_wallet = is_wallet.xpath('//span[@class="tw-self-start tw-py-1 tw-my-0.5 tw-min-w-3/10 2xl:tw-min-w-1/4 tw-text-gray-500 dark:tw-text-white dark:tw-text-opacity-60 tw-mr-2"]')
-    # print(yes_is_wallet)
-    wallet = list()
-    for i in yes_is_wallet:
-        wallet.append(i.xpath('//a[@class="tw-px-2.5 tw-py-1 tw-my-0.5 tw-mr-1 tw-rounded-md tw-text-sm tw-font-medium tw-bg-gray-100 tw-text-gray-800 hover:tw-bg-gray-200 dark:tw-text-white dark:tw-bg-white dark:tw-bg-opacity-10 dark:hover:tw-bg-opacity-20 dark:focus:tw-bg-opacity-20 "]/text()'))
-    print(f'Wallet is: {wallet}')
-    print(f'Wallet type is: {type(wallet)}')
+    if wallet == []:
+        print('wallet is none')
+        return wallet
+
+    # html = requests.get(coin_url)
+    # doc = lxml.html.fromstring(html.content)
+    # is_wallet = doc.xpath('//div[@class="coin-link-row tw-mb-0"]')[0]
+    # yes_is_wallet = is_wallet.xpath('//span[@class="tw-self-start tw-py-1 tw-my-0.5 tw-min-w-3/10 2xl:tw-min-w-1/4 tw-text-gray-500 dark:tw-text-white dark:tw-text-opacity-60 tw-mr-2"]')
+    # # print(yes_is_wallet)
+    # wallet = list()
+    # for i in yes_is_wallet:
+    #     wallet.append(i.xpath('//a[@class="tw-px-2.5 tw-py-1 tw-my-0.5 tw-mr-1 tw-rounded-md tw-text-sm tw-font-medium tw-bg-gray-100 tw-text-gray-800 hover:tw-bg-gray-200 dark:tw-text-white dark:tw-bg-white dark:tw-bg-opacity-10 dark:hover:tw-bg-opacity-20 dark:focus:tw-bg-opacity-20 "]/text()'))
+    # print(f'Wallet is: {wallet}')
+    # print(f'Wallet type is: {type(wallet)}')
 
     # span_wallets = list()
     # for i in div_wallet:
     #     span_wallets.append(i.xpath('//span[@class="tw-self-start tw-py-1 tw-my-0.5 tw-min-w-3/10 2xl:tw-min-w-1/4 tw-text-gray-500 dark:tw-text-white dark:tw-text-opacity-60 tw-mr-2"]/text()'))
     # print(f'Wallet is: {span_wallets}')
     # print(f'Wallet type is: {type(span_wallets)}')
-    return
+    # return
 
     # while True:
     #     current_item = dom.findtext('a')
@@ -154,7 +161,7 @@ def wallets_scraper(coin_url, soup_coin, dom):
         return None
 
 
-def web_scraper(url, soup, n, days, date):
+def web_scraper(url, soup, f, t, days, date):
     """
     Parses the data and creates a Pandas dataframe with the main information of each coin.
     Calls functions price_scraper, market_scraper, csv_reader and create_temp_df in the process.
@@ -171,7 +178,7 @@ def web_scraper(url, soup, n, days, date):
     df_historical = None
     print('Information being retrieved...')
 
-    for coin_index, link in tqdm(enumerate(scraped_links[:n], 1), total=n):
+    for coin_index, link in tqdm(enumerate(scraped_links[f: t], 1), total=t-f):
         coin_name = link.findChild().text.strip()
         print(coin_name)
         coin_url = url + link['href']
@@ -245,14 +252,22 @@ def main():
     - calls the get_soup and web_scraper functions
     - returns the two dataframes returned by the web_scraped function
     """
-    n = args.coins
+    f = args.from_coin
+    t = args.to_coin
     days = args.days
     date = args.date
 
-    if n is None:
-        n = MAX_NUMBER_OF_COINS
-    if n not in range(1, MAX_NUMBER_OF_COINS + 1):
-        print("ERROR: The value of the argument 'coins' must be an integer from 1 to 100.")
+    if f is None:
+        f = MIN_NUMBER_OF_COINS
+    if f not in range(1, MAX_NUMBER_OF_COINS + 1):
+        print("ERROR: The value of the argument 'from_coin' must be an integer from 1 to 100.")
+        return
+    f -= 1
+
+    if t is None:
+        t = MAX_NUMBER_OF_COINS
+    if t not in range(1, MAX_NUMBER_OF_COINS + 1):
+        print("ERROR: The value of the argument 'to_coin' must be an integer from 1 to 100.")
         return
 
     if date is not None:
@@ -271,7 +286,7 @@ def main():
         return
 
     url, soup = get_soup(COINGECKO_URL)
-    df_coins, df_historical, df_wallets = web_scraper(url, soup, n, days, date)
+    df_coins, df_historical, df_wallets = web_scraper(url, soup, f, t, days, date)
 
     return df_coins, df_historical, df_wallets
 
