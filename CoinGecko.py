@@ -78,36 +78,41 @@ def csv_reader(url_historical):
     return csv_file
 
 
-def create_temp_df(coin_index, csv_file, days, date):
+def create_temp_df(coin_id, csv_file, days, date):
     """
     Creates a csv file of the coin's historical data, creates a temporary dataframe and removes the csv file.
-    @param coin_index: index of the coin
+    @param coin_id: index of the coin
     @param csv_file: csv format file of the coin's historical data
     @param days: argument passed by the user, specifies how many days of data to save in the dataframe
     @param date: argument passed by the user, specifies from which date of data to save in the dataframe
     @return: a temporary dataframe
     """
-    with open(f'csv_{coin_index}', 'wb') as f:
+    with open(f'csv_{coin_id}', 'wb') as f:
         f.write(csv_file)
 
     if days is not None:
-        temp_df = pd.read_csv(f'csv_{coin_index}').tail(days)
+        temp_df = pd.read_csv(f'csv_{coin_id}').tail(days)
     elif date is not None:
         today = datetime.today()
         delta = (today - date).days + 1
-        temp_df = pd.read_csv(f'csv_{coin_index}').tail(delta)
+        temp_df = pd.read_csv(f'csv_{coin_id}').tail(delta)
     else:
-        temp_df = pd.read_csv(f'csv_{coin_index}')
+        temp_df = pd.read_csv(f'csv_{coin_id}')
 
-    temp_df['coin_id'] = coin_index
+    temp_df['coin_id'] = coin_id
 
-    os.remove(f'csv_{coin_index}')
+    os.remove(f'csv_{coin_id}')
 
     return temp_df
 
 
 def wallets_scraper(coin_url, dom):
+    """
 
+    @param coin_url:
+    @param dom:
+    @return:
+    """
     html = requests.get(coin_url)
     doc = lxml.html.fromstring(html.content)
     div_wallet = doc.xpath('//div[@class="coin-link-row tw-mb-0"]')[0]
@@ -175,10 +180,13 @@ def web_scraper(url, soup, f, t, days, date):
     scraped_links = soup.find_all('a', class_="tw-flex tw-items-start md:tw-flex-row tw-flex-col")
     list_of_lists = list()
     list_of_wallets = list()
+    coin_id = 0
     df_historical = None
     print('Information being retrieved...')
 
-    for coin_index, link in tqdm(enumerate(scraped_links[f: t], 1), total=t-f):
+    # for coin_id, link in tqdm(enumerate(scraped_links[f: t], 1), total=t-f):
+    for link in tqdm(scraped_links[f: t], total=t-f):
+        coin_id += 1
         coin_name = link.findChild().text.strip()
         print(coin_name)
         coin_url = url + link['href']
@@ -209,7 +217,7 @@ def web_scraper(url, soup, f, t, days, date):
 
         csv_file = csv_reader(url_historical)
 
-        temp_df = create_temp_df(coin_index, csv_file, days, date)
+        temp_df = create_temp_df(coin_id, csv_file, days, date)
 
         # Assuming Bitcoin is the #1 coin. If the flippening was to happen, the code should be revised.
         if coin_name == 'Bitcoin':
@@ -222,20 +230,23 @@ def web_scraper(url, soup, f, t, days, date):
         # if coin_name not in ('eCash', 'Gate', 'PAX Gold', 'Tenset', 'Curve DAO'):
         #     wallets = wallets_scraper(dom)
         #     list_of_wallets.append(wallets)
-        list_of_wallets.append([coin_name, wallets_of_each_coin])
-        print(list_of_wallets[-1])
+        for wallet in wallets_of_each_coin:
+            list_of_wallets.append([coin_id, wallet])
+
+        # print(list_of_wallets[-1])
 
         # list_of_lists.append([coin_name, price, market_cap, coin_url])
 
 
     # print(list_of_wallets)
-    df_wallets = pd.DataFrame(list_of_wallets, columns=['coin_name', 'wallets'])
-    df_wallets.index = range(1, len(df_wallets) + 1)
-    df_wallets.reset_index(inplace=True)
+    df_wallets = pd.DataFrame(list_of_wallets, columns=['coin_id', 'wallets'])
+    # df_wallets.index = range(1, len(df_wallets) + 1)
+    # df_wallets.reset_index(inplace=True)
 
     df_coins = pd.DataFrame(list_of_lists, columns=['coin_name', 'price', 'market_cap', 'URL'])
-    df_coins.index = range(1, len(df_coins) + 1)
-    df_coins.reset_index(inplace=True)
+    df_coins['coin_id'] = range(1, len(df_coins) + 1)
+    # df_coins.index = range(1, len(df_coins) + 1)
+    # df_coins.reset_index(inplace=True)
 
     for column in ('price', 'market_cap'):
         df_coins[column] = df_coins[column].str.replace(',', '', regex=False)
@@ -252,9 +263,9 @@ def web_scraper(url, soup, f, t, days, date):
 def main():
     """
     Main function of the module:
-    - checks all three possible arguments provided by the user have an expected value, giving an error message if needed
+    - checks all four possible arguments provided by the user have a correct value, giving an error message otherwise
     - calls the get_soup and web_scraper functions
-    - returns the two dataframes returned by the web_scraped function
+    - returns three dataframes returned by the web_scraped function
     """
     f = args.from_coin
     t = args.to_coin
@@ -294,6 +305,7 @@ def main():
 
     return df_coins, df_historical, df_wallets
     # return df_coins, df_historical
+
 
 if __name__ == '__main__':
     print(main())
