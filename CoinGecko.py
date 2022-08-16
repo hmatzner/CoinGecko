@@ -9,7 +9,7 @@ import lxml.html
 from urllib.request import Request, urlopen
 from datetime import datetime
 from tqdm import tqdm
-from database import Database
+from database_object2 import Database
 
 
 COINGECKO_URL = 'https://www.coingecko.com'
@@ -106,7 +106,7 @@ def create_temp_df(coin_index, csv_file, days, date):
     return temp_df
 
 
-def wallets_scraper(coin_url, soup_coin, dom):
+def wallets_scraper(coin_url, dom):
 
     html = requests.get(coin_url)
     doc = lxml.html.fromstring(html.content)
@@ -115,9 +115,8 @@ def wallets_scraper(coin_url, soup_coin, dom):
     # print(f'Wallet is: {wallet}')
     # print(f'Wallet type is: {type(wallet)}')
 
-    if wallet == []:
-        print('wallet is none')
-        return wallet
+    if not wallet:
+        return None
 
     # html = requests.get(coin_url)
     # doc = lxml.html.fromstring(html.content)
@@ -167,7 +166,8 @@ def web_scraper(url, soup, f, t, days, date):
     Calls functions price_scraper, market_scraper, csv_reader and create_temp_df in the process.
     @param url: main webpage's url
     @param soup: Beautiful Soup object created with the requests module
-    @param n: argument passed by the user, specifies the number of coins selected
+    @param f: argument passed by the user, specifies from which coin to get info about
+    @param t: argument passed by the user, specifies until which coin to get info about
     @param days: argument passed by the user, specifies how many days of data to save in the dataframe
     @param date: argument passed by the user, specifies from which date of data to save in the dataframe
     @return: a Pandas dataframe with relevant info about each coin and another one with their historical data
@@ -217,15 +217,19 @@ def web_scraper(url, soup, f, t, days, date):
         else:
             df_historical = pd.concat([df_historical, temp_df])
 
-        wallets_of_each_coin = wallets_scraper(coin_url, soup_coin, dom)
+        wallets_of_each_coin = wallets_scraper(coin_url, dom)
 
         # if coin_name not in ('eCash', 'Gate', 'PAX Gold', 'Tenset', 'Curve DAO'):
         #     wallets = wallets_scraper(dom)
         #     list_of_wallets.append(wallets)
-        list_of_wallets.append(wallets_of_each_coin)
+        list_of_wallets.append([coin_name, wallets_of_each_coin])
+        print(list_of_wallets[-1])
 
-    print(list_of_wallets)
-    df_wallets = pd.DataFrame(list_of_wallets)
+        # list_of_lists.append([coin_name, price, market_cap, coin_url])
+
+
+    # print(list_of_wallets)
+    df_wallets = pd.DataFrame(list_of_wallets, columns=['coin_name', 'wallets'])
     df_wallets.index = range(1, len(df_wallets) + 1)
     df_wallets.reset_index(inplace=True)
 
@@ -288,20 +292,15 @@ def main():
     url, soup = get_soup(COINGECKO_URL)
     df_coins, df_historical, df_wallets = web_scraper(url, soup, f, t, days, date)
 
-    # return df_coins, df_historical, df_wallets
-    return df_coins, df_historical
+    return df_coins, df_historical, df_wallets
+    # return df_coins, df_historical
 
 if __name__ == '__main__':
-    main()
-    # print(main())
+    print(main())
     # coins, historical_data = main()
-    # # Saving to SQL
+    # print(f"within CoinGecko:\n{coins}", end='\n\n')
+    # # # Saving to SQL
     # db = Database()
     # db.append_rows_to_coins(coins)
     # db.append_rows_to_history(historical_data)
-    df, df_hist = main()
-    print(f"within CoinGecko:\n{df}", end='\n\n')
-    # saving to SQL
-    db = Database()
-    db.append_rows_to_coins(df)
-    db.append_rows_to_history(df_hist)
+
