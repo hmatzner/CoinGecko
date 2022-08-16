@@ -173,6 +173,7 @@ def web_scraper(url, soup, f, t, days, date):
         html_coin = get_soup(coin_url)
         dom = etree.HTML(str(html_coin))
 
+        # Assigns to variables fictional None values that are supposed to change later
         price, market_cap, wallets_of_each_coin = (None, None, None)
 
         # Iterating over the price and the market cap.
@@ -182,38 +183,48 @@ def web_scraper(url, soup, f, t, days, date):
             for index in range(4, 7):
                 try:
                     if value == 0:
+                        # Scrapes the price of a coin in the present
                         price = price_scraper(dom, index)
                     else:
+                        # Scrapes the market cap of a coin in the present
                         market_cap = market_scraper(dom, index)
                     break
                 except IndexError:
                     pass
 
+        # Appends to a list all relevant information of a coin
         list_of_coins.append([coin_name, price, market_cap, coin_url])
 
+        # URL of the historical data of a coin
         url_historical = coin_url + '/historical_data#panel'
 
+        # Creates a csv file with the historical data of a coin
         csv_file = csv_reader(url_historical)
 
+        # Creates a temporary dataframe with historical data of a coin
         temp_df = create_temp_df(coin_id, csv_file, days, date)
 
         # Assuming Bitcoin is the #1 coin. If the flippening was to happen, the code should be revised.
+        # Creates the df_historical if it didn't exist; if it did, it concatenates itself with the temporary dataframe
         if coin_name == 'Bitcoin':
             df_historical = temp_df
         else:
             df_historical = pd.concat([df_historical, temp_df])
 
+        # Creates a list of wallets of a coin
         wallets_of_each_coin = wallets_scraper(coin_url, dom)
 
+        # If a coin has wallets, appends to the list of wallets each one of them with their respective coin id
         if wallets_of_each_coin:
             for wallet in wallets_of_each_coin:
                 list_of_wallets.append([coin_id, wallet])
 
-    df_wallets = pd.DataFrame(list_of_wallets, columns=['coin_id', 'wallets'])
-
+    # Creates the coins and wallets dataframes
     df_coins = pd.DataFrame(list_of_coins, columns=['coin_name', 'price', 'market_cap', 'URL'])
     df_coins['coin_id'] = range(1, len(df_coins) + 1)
+    df_wallets = pd.DataFrame(list_of_wallets, columns=['coin_id', 'wallets'])
 
+    # Changes the format of the price and market cap columns in the coins dataframe
     for column in ('price', 'market_cap'):
         df_coins[column] = df_coins[column].str.replace(',', '', regex=False)
         df_coins[column] = df_coins[column].str.replace('$', '', regex=False)
