@@ -357,17 +357,15 @@ def main():
         return
 
     url, soup = get_soup(COINGECKO_URL)
-    df_coins, df_historical, df_wallets, df_distinct_wallets = web_scraper(url, soup, f, t, days, date)
+    dataframes = web_scraper(url, soup, f, t, days, date)
 
     # Saving to SQL
     # Database(coins=df_coins, hist=df_historical, wallets=df_wallets, wallets_names=df_distinct_wallets)
 
-    return df_coins, df_historical, df_wallets, df_distinct_wallets
-    # return df_coins, df_historical
-
     end = time.perf_counter()
     print(f'Time taken to get the data with requests module: {end - start} seconds.\n')
 
+    return dataframes
 
 # if __name__ == '__main__':
 #
