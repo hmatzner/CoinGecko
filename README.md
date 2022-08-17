@@ -33,7 +33,8 @@ Regarding the main branch which is the default one:
 The main file that should be run on the terminal is coingecko.py, which imports:
 - API.py, which performs a similar tasks in a single coin and times how long it took to perform the operation
 - webscraper.py, which perform the web scraping and times how long it took to perform the operation (useful to compare 
-with the time it took to API.py by running the code with the argparse arguments: -t1 -d0)
+with the time it took to API.py by running the code with the argparse arguments: -t1 -d10, for only the first coin and 
+10 days of historical data)
 - and database.py, which performs the SQL queries.
 The .ipynb is a discontinued version of the project
 
