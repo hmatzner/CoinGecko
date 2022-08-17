@@ -12,7 +12,6 @@ import lxml.html
 from urllib.request import Request, urlopen
 from datetime import datetime
 from tqdm import tqdm
-from database import Database
 
 
 COINGECKO_URL = 'https://www.coingecko.com'
@@ -366,16 +365,3 @@ def main():
     print(f'Time taken to get the data with requests module: {end - start} seconds.\n')
 
     return dataframes
-
-# if __name__ == '__main__':
-#
-#
-#     print(main())
-    # coins, historical_data = main()
-    # print(f"within CoinGecko:\n{coins}", end='\n\n')
-    # # Saving to SQL
-    # db = Database()
-    # db.append_rows_to_coins(coins)
-    # db.append_rows_to_history(historical_data)
-
-
