@@ -87,9 +87,12 @@ def create_temp_df(coin_id, csv_file, days, date):
     @param date: argument passed by the user, specifies from which date of data to save in the dataframe
     @return: a temporary dataframe
     """
+    # Creates a csv file for each coin and writes in it the historical data
     with open(f'csv_{coin_id}', 'wb') as f:
         f.write(csv_file)
 
+    # Uses the parameter either 'days' or 'date' provided (or not) by the user to create a temporary dataframe
+    # that reads the csv file created.
     if days is not None:
         temp_df = pd.read_csv(f'csv_{coin_id}').tail(days)
     elif date is not None:
@@ -101,6 +104,7 @@ def create_temp_df(coin_id, csv_file, days, date):
 
     temp_df['coin_id'] = coin_id
 
+    # Removes the file created before
     os.remove(f'csv_{coin_id}')
 
     return temp_df
@@ -119,6 +123,7 @@ def wallets_scraper(coin_url, dom):
     wallet = div_wallet.xpath('//span[@class="tw-self-start tw-py-1 tw-my-0.5 tw-min-w-3/10 2xl:tw-min-w-1/4'
                               ' tw-text-gray-500 dark:tw-text-white dark:tw-text-opacity-60 tw-mr-2"]/text()')
 
+    # If the coin's link doesn't have the text 'Wallet' (i.e. doesn't have wallets), returns None
     if not wallet:
         return
 
@@ -129,10 +134,12 @@ def wallets_scraper(coin_url, dom):
     for index_xpath in range(4, 6):
         index = 1
         try:
+            # Appends all wallets of a coin until receiving an error when there are no more wallets to do so.
             while True:
                 wallets.append(dom.xpath(f'/html/body/div[5]/div[4]/div[2]/div[2]/div[{index_xpath}]/div/a[{index}]')[-1].text)
                 index += 1
         except IndexError:
+            # Returns an empty list if no wallets where added in the loop before
             if index != 1:
                 return wallets
 
@@ -156,15 +163,18 @@ def web_scraper(url, soup, f, t, days, date):
     @param date: argument passed by the user, specifies from which date of data to save in the dataframe
     @return: a Pandas dataframe with relevant info about each coin and another one with their historical data
     """
+    # Finds all coin's links
     scraped_links = soup.find_all('a', class_="tw-flex tw-items-start md:tw-flex-row tw-flex-col")
 
     list_of_coins = list()
     list_of_wallets = list()
+    distinct_wallets = set()
     coin_id = 0
     df_historical = None
 
     print('Information being retrieved...')
 
+    # Iterating over all the coins selected by the user
     for link in tqdm(scraped_links[f: t], total=t-f):
         coin_id += 1
         coin_name = link.findChild().text.strip()
@@ -214,15 +224,21 @@ def web_scraper(url, soup, f, t, days, date):
         # Creates a list of wallets of a coin
         wallets_of_each_coin = wallets_scraper(coin_url, dom)
 
-        # If a coin has wallets, appends to the list of wallets each one of them with their respective coin id
+        # If a coin has wallets (i.e. the list is not empty), appends to the list of wallets each one of them with
+        # their respective coin id
         if wallets_of_each_coin:
             for wallet in wallets_of_each_coin:
+                distinct_wallets.add(wallet)
                 list_of_wallets.append([coin_id, wallet])
 
-    # Creates the coins and wallets dataframes
+    # print(f'list of distinct wallets: {distinct_wallets}')
+
+    # Creates the coins, wallets and distinct wallets dataframes and assigns an id column where necessary
     df_coins = pd.DataFrame(list_of_coins, columns=['coin_name', 'price', 'market_cap', 'URL'])
     df_coins['coin_id'] = range(1, len(df_coins) + 1)
     df_wallets = pd.DataFrame(list_of_wallets, columns=['coin_id', 'wallets'])
+    df_distinct_wallets = pd.DataFrame(distinct_wallets, columns=['wallets'])
+    df_distinct_wallets['wallet_id'] = range(1, len(df_distinct_wallets) + 1)
 
     # Changes the format of the price and market cap columns in the coins dataframe
     for column in ('price', 'market_cap'):
@@ -230,16 +246,21 @@ def web_scraper(url, soup, f, t, days, date):
         df_coins[column] = df_coins[column].str.replace('$', '', regex=False)
         df_coins[column] = df_coins[column].astype(float)
 
+    # Changes the format of the price column in the historical data dataframe so it matches the one in coins dataframe
     df_historical['price'] = df_historical['price'].round(2)
+
+    # Resets the index of the historical dataframe
     df_historical.reset_index(drop=True, inplace=True)
 
-    # Shifting column 'coin_id' to first position in df_coins and df_historical
+    # Shifts column 'coin_id' to the first position in df_coins and df_historical
     for dataframe in (df_coins, df_historical):
         first_column = dataframe.pop('coin_id')
         dataframe.insert(0, 'coin_id', first_column)
 
+    #  TODO: change name of wallet in df_wallets to wallet_id
+
     print('\n')
-    return df_coins, df_historical, df_wallets
+    return df_coins, df_historical, df_wallets, df_distinct_wallets
 
 
 def main():
@@ -283,9 +304,9 @@ def main():
         return
 
     url, soup = get_soup(COINGECKO_URL)
-    df_coins, df_historical, df_wallets = web_scraper(url, soup, f, t, days, date)
+    df_coins, df_historical, df_wallets, df_distinct_wallets = web_scraper(url, soup, f, t, days, date)
 
-    return df_coins, df_historical, df_wallets
+    return df_coins, df_historical, df_wallets, df_distinct_wallets
     # return df_coins, df_historical
 
 
@@ -297,4 +318,3 @@ if __name__ == '__main__':
     # db = Database()
     # db.append_rows_to_coins(coins)
     # db.append_rows_to_history(historical_data)
-
