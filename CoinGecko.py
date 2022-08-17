@@ -281,15 +281,15 @@ def web_scraper(url, soup, f, t, days, date):
     # Creates the coins, wallets and distinct wallets dataframes and assigns an id column where necessary
     df_coins = pd.DataFrame(list_of_coins, columns=['coin_name', 'price', 'market_cap', 'URL'])
     df_coins['coin_id'] = range(1, len(df_coins) + 1)
-    df_wallets = pd.DataFrame(list_of_wallets, columns=['coin_id', 'wallets'])
-    df_distinct_wallets = pd.DataFrame(distinct_wallets, columns=['wallets'])
+    df_wallets = pd.DataFrame(list_of_wallets, columns=['coin_id', 'wallet'])
+    df_distinct_wallets = pd.DataFrame(distinct_wallets, columns=['wallet_name'])
     df_distinct_wallets['wallet_id'] = range(1, len(df_distinct_wallets) + 1)
 
     # Replaces the column with the name of the wallets with another one with their id
-    wallets_map = df_distinct_wallets.wallets.to_dict()
+    wallets_map = df_distinct_wallets['wallet_name'].to_dict()
     wallets_map = {v: k for k, v in wallets_map.items()}
-    df_wallets['wallets'] = df_wallets['wallets'].apply(lambda x: wallets_map[x] + 1)
-    df_wallets = df_wallets.rename(columns={'wallets': 'wallet_id'})
+    df_wallets['wallet'] = df_wallets['wallet'].apply(lambda x: wallets_map[x] + 1)
+    df_wallets = df_wallets.rename(columns={'wallet': 'wallet_id'})
 
     # Changes the format of the price and market cap columns in the coins dataframe
     for column in ('price', 'market_cap'):
