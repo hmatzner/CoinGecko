@@ -1,5 +1,6 @@
 import pymysql
 import pandas as pd
+import time
 
 
 class Database:
@@ -15,6 +16,7 @@ class Database:
         @param db_name: name of the database
         @param logger: logger object
         """
+        start = time.perf_counter()
         try:
             with open('.gitignore_folder/password.txt') as f:
                 self.PASSWORD = f.read()
@@ -56,6 +58,10 @@ class Database:
             self.append_rows_to_wallets(wallets)
         if wallets_names is not None:
             self.append_rows_to_wallets_names(wallets_names)
+
+        end = time.perf_counter()
+        print(f'Time taken to get the data with requests module: {end - start} seconds.\n')
+
 
     def create_connection(self, use_db=True):
         """

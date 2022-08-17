@@ -1,4 +1,5 @@
 import requests
+import time
 
 
 api_url = "https://api.coingecko.com/api/v3/coins/"
@@ -24,7 +25,10 @@ def get_coin_current_price(json_coin):
     @param json_coin: JSON file of a coin
     @return: a coin's current price in USD
     """
-    return json_coin['market_data']['current_price']['btc']/BIT_TO_USD
+    try:
+        return json_coin['market_data']['current_price']['btc']/BIT_TO_USD
+    except Exception as e:
+        logger.error(e)
 
 
 def get_coin_market_cap(json_coin):
@@ -33,24 +37,50 @@ def get_coin_market_cap(json_coin):
     @param json_coin: JSON file of a coin
     @return: a coin's current market cap in USD
     """
-    return json_coin['market_data']['market_cap']['btc']/BIT_TO_USD
+    try:
+        return json_coin['market_data']['market_cap']['btc']/BIT_TO_USD
+    except Exception as e:
+        logger.error(e)
 
 
 def get_historical(coin_id, days, vs_currency='usd', interval='daily'):
-    params = dict(days=days, vs_currency=vs_currency, interval=interval)
-    suffix = coin_id + '/market_chart'
-    return get_json(suffix, params)
+    try:
+        params = dict(days=days, vs_currency=vs_currency, interval=interval)
+        suffix = coin_id + '/market_chart'
+        return get_json(suffix, params)
+    except Exception as e:
+        logger.error(e)
 
 
-def main(logger_input=None):
+def main(coins=None, days=10, logger_input=None):
+    start = time.perf_counter()
     global logger
     logger = logger_input
     logger.info("in")
-    btc_json = get_json('bitcoin')
-    eth_json = get_json('ethereum')
-    print(f"Bitcoin value: USD {get_coin_current_price(btc_json)}")
-    print(f"Ethereum value: USD {get_coin_current_price(eth_json)}")
-    print(f"\nHistory of last 2 days of Bitcoin:\n{get_historical('Bitcoin', 2)}")
+    try:
+        if coins:
+            for coin in coins:
+                data = get_json(coin)
+    except Exception as e:
+        logger.error(e)
+
+    try:
+        if days:
+            if coins:
+                get_historical(coins[0], 2)
+            else:
+                get_historical('Bitcoin', 2)
+    except Exception as e:
+        logger.error(e)
+
+    end = time.perf_counter()
+    print(f'Time taken to get the data with requests module: {end - start} seconds.\n')
+
+    # btc_json = get_json('bitcoin')
+    # eth_json = get_json('ethereum')
+    # print(f"Bitcoin value: USD {get_coin_current_price(btc_json)}")
+    # print(f"Ethereum value: USD {get_coin_current_price(eth_json)}")
+    # print(f"\nHistory of last 2 days of Bitcoin:\n{get_historical('Bitcoin', 2)}")
     # return btc_json, eth_json
 
 

@@ -35,8 +35,12 @@ def main():
     """
     Main function of the module that calls the web scraper, API and database files
     """
-    Database(*webscraper.main(), logger=set_logger('database'))
-    print(API.main(logger_input=set_logger('API')))
+    scraper_results = webscraper.main()
+    coins = scraper_results[0].coin_name.to_list()
+    # Database(*scraper_results, logger=set_logger('database'))
+    API_results = API.main(coins=coins, logger_input=set_logger('API'))
+    for res in API_results:
+        print(res, end='\n\n')
 
 
 if __name__ == '__main__':
