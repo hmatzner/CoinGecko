@@ -1,17 +1,17 @@
+import sys
 import os
+import re
 import requests
 import argparse
+import logging
+import time
 import pandas as pd
-import re
 from bs4 import BeautifulSoup
 from lxml import etree
 import lxml.html
 from urllib.request import Request, urlopen
 from datetime import datetime
 from tqdm import tqdm
-import logging
-import sys
-import time
 from database_object2 import Database
 
 

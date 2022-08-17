@@ -1,0 +1,74 @@
+2022-08-17 14:56:22,957-INFO-FILE:CoinGecko.py-FUNC:get_soup-LINE:61-The request for CoinGecko's main website was successful
+2022-08-17 14:56:23,528-INFO-FILE:CoinGecko.py-FUNC:get_soup-LINE:61-The request for CoinGecko's main website was successful
+2022-08-17 14:56:24,019-INFO-FILE:CoinGecko.py-FUNC:csv_reader-LINE:96-The request for Bitcoin's historical data was successful
+2022-08-17 14:56:25,321-INFO-FILE:CoinGecko.py-FUNC:create_temp_df-LINE:123-The csv file for Bitcoin's historical data was successfully created
+2022-08-17 14:56:25,343-INFO-FILE:CoinGecko.py-FUNC:create_temp_df-LINE:147-The csv file for Bitcoin's historical data was successfully deleted from the device
+2022-08-17 14:56:26,167-INFO-FILE:CoinGecko.py-FUNC:wallets_scraper-LINE:161-The request for Bitcoin's main website was successful
+2022-08-17 14:56:27,500-INFO-FILE:CoinGecko.py-FUNC:get_soup-LINE:61-The request for CoinGecko's main website was successful
+2022-08-17 14:56:27,958-INFO-FILE:CoinGecko.py-FUNC:csv_reader-LINE:96-The request for Ethereum's historical data was successful
+2022-08-17 14:56:30,064-INFO-FILE:CoinGecko.py-FUNC:create_temp_df-LINE:123-The csv file for Ethereum's historical data was successfully created
+2022-08-17 14:56:30,073-INFO-FILE:CoinGecko.py-FUNC:create_temp_df-LINE:147-The csv file for Ethereum's historical data was successfully deleted from the device
+2022-08-17 14:56:31,307-INFO-FILE:CoinGecko.py-FUNC:wallets_scraper-LINE:161-The request for Ethereum's main website was successful
+2022-08-17 14:56:32,415-INFO-FILE:CoinGecko.py-FUNC:get_soup-LINE:61-The request for CoinGecko's main website was successful
+2022-08-17 14:56:32,848-INFO-FILE:CoinGecko.py-FUNC:csv_reader-LINE:96-The request for Tether's historical data was successful
+2022-08-17 14:56:34,053-INFO-FILE:CoinGecko.py-FUNC:create_temp_df-LINE:123-The csv file for Tether's historical data was successfully created
+2022-08-17 14:56:34,062-INFO-FILE:CoinGecko.py-FUNC:create_temp_df-LINE:147-The csv file for Tether's historical data was successfully deleted from the device
+2022-08-17 14:56:35,507-INFO-FILE:CoinGecko.py-FUNC:wallets_scraper-LINE:161-The request for Tether's main website was successful
+2022-08-17 14:56:37,097-INFO-FILE:CoinGecko.py-FUNC:get_soup-LINE:61-The request for CoinGecko's main website was successful
+2022-08-17 14:56:37,882-INFO-FILE:CoinGecko.py-FUNC:csv_reader-LINE:96-The request for USD Coin's historical data was successful
+2022-08-17 14:56:39,073-INFO-FILE:CoinGecko.py-FUNC:create_temp_df-LINE:123-The csv file for USD Coin's historical data was successfully created
+2022-08-17 14:56:39,080-INFO-FILE:CoinGecko.py-FUNC:create_temp_df-LINE:147-The csv file for USD Coin's historical data was successfully deleted from the device
+2022-08-17 14:56:39,889-INFO-FILE:CoinGecko.py-FUNC:wallets_scraper-LINE:161-The request for USD Coin's main website was successful
+2022-08-17 14:56:40,606-INFO-FILE:CoinGecko.py-FUNC:get_soup-LINE:61-The request for CoinGecko's main website was successful
+2022-08-17 14:56:41,934-INFO-FILE:CoinGecko.py-FUNC:csv_reader-LINE:96-The request for BNB's historical data was successful
+2022-08-17 14:56:42,959-INFO-FILE:CoinGecko.py-FUNC:create_temp_df-LINE:123-The csv file for BNB's historical data was successfully created
+2022-08-17 14:56:42,966-INFO-FILE:CoinGecko.py-FUNC:create_temp_df-LINE:147-The csv file for BNB's historical data was successfully deleted from the device
+2022-08-17 14:56:43,778-INFO-FILE:CoinGecko.py-FUNC:wallets_scraper-LINE:161-The request for BNB's main website was successful
+2022-08-17 14:58:27,792-INFO-FILE:CoinGecko.py-FUNC:get_soup-LINE:61-The request for CoinGecko's main website was successful
+2022-08-17 14:58:28,847-INFO-FILE:CoinGecko.py-FUNC:get_soup-LINE:61-The request for CoinGecko's main website was successful
+2022-08-17 14:58:29,275-INFO-FILE:CoinGecko.py-FUNC:csv_reader-LINE:96-The request for Bitcoin's historical data was successful
+2022-08-17 14:58:32,433-INFO-FILE:CoinGecko.py-FUNC:create_temp_df-LINE:123-The csv file for Bitcoin's historical data was successfully created
+2022-08-17 14:58:32,448-INFO-FILE:CoinGecko.py-FUNC:create_temp_df-LINE:147-The csv file for Bitcoin's historical data was successfully deleted from the device
+2022-08-17 14:58:32,730-INFO-FILE:CoinGecko.py-FUNC:wallets_scraper-LINE:161-The request for Bitcoin's main website was successful
+2022-08-17 14:58:33,420-INFO-FILE:CoinGecko.py-FUNC:get_soup-LINE:61-The request for CoinGecko's main website was successful
+2022-08-17 14:58:34,373-INFO-FILE:CoinGecko.py-FUNC:csv_reader-LINE:96-The request for Ethereum's historical data was successful
+2022-08-17 14:58:35,507-INFO-FILE:CoinGecko.py-FUNC:create_temp_df-LINE:123-The csv file for Ethereum's historical data was successfully created
+2022-08-17 14:58:35,516-INFO-FILE:CoinGecko.py-FUNC:create_temp_df-LINE:147-The csv file for Ethereum's historical data was successfully deleted from the device
+2022-08-17 14:58:35,784-INFO-FILE:CoinGecko.py-FUNC:wallets_scraper-LINE:161-The request for Ethereum's main website was successful
+2022-08-17 14:58:37,300-INFO-FILE:CoinGecko.py-FUNC:get_soup-LINE:61-The request for CoinGecko's main website was successful
+2022-08-17 14:58:38,252-INFO-FILE:CoinGecko.py-FUNC:csv_reader-LINE:96-The request for Tether's historical data was successful
+2022-08-17 14:58:39,329-INFO-FILE:CoinGecko.py-FUNC:create_temp_df-LINE:123-The csv file for Tether's historical data was successfully created
+2022-08-17 14:58:39,338-INFO-FILE:CoinGecko.py-FUNC:create_temp_df-LINE:147-The csv file for Tether's historical data was successfully deleted from the device
+2022-08-17 14:58:39,644-INFO-FILE:CoinGecko.py-FUNC:wallets_scraper-LINE:161-The request for Tether's main website was successful
+2022-08-17 14:58:40,424-INFO-FILE:CoinGecko.py-FUNC:get_soup-LINE:61-The request for CoinGecko's main website was successful
+2022-08-17 14:58:40,880-INFO-FILE:CoinGecko.py-FUNC:csv_reader-LINE:96-The request for USD Coin's historical data was successful
+2022-08-17 14:58:41,849-INFO-FILE:CoinGecko.py-FUNC:create_temp_df-LINE:123-The csv file for USD Coin's historical data was successfully created
+2022-08-17 14:58:41,856-INFO-FILE:CoinGecko.py-FUNC:create_temp_df-LINE:147-The csv file for USD Coin's historical data was successfully deleted from the device
+2022-08-17 14:58:42,569-INFO-FILE:CoinGecko.py-FUNC:wallets_scraper-LINE:161-The request for USD Coin's main website was successful
+2022-08-17 14:58:43,296-INFO-FILE:CoinGecko.py-FUNC:get_soup-LINE:61-The request for CoinGecko's main website was successful
+2022-08-17 14:58:43,718-INFO-FILE:CoinGecko.py-FUNC:csv_reader-LINE:96-The request for BNB's historical data was successful
+2022-08-17 14:58:44,586-INFO-FILE:CoinGecko.py-FUNC:create_temp_df-LINE:123-The csv file for BNB's historical data was successfully created
+2022-08-17 14:58:44,596-INFO-FILE:CoinGecko.py-FUNC:create_temp_df-LINE:147-The csv file for BNB's historical data was successfully deleted from the device
+2022-08-17 14:58:44,862-INFO-FILE:CoinGecko.py-FUNC:wallets_scraper-LINE:161-The request for BNB's main website was successful
+2022-08-17 15:11:03,044-INFO-FILE:CoinGecko.py-FUNC:get_soup-LINE:61-The request for CoinGecko's main website was successful
+2022-08-17 15:11:03,998-INFO-FILE:CoinGecko.py-FUNC:get_soup-LINE:61-The request for CoinGecko's main website was successful
+2022-08-17 15:11:05,192-INFO-FILE:CoinGecko.py-FUNC:csv_reader-LINE:96-The request for Bitcoin's historical data was successful
+2022-08-17 15:11:06,650-INFO-FILE:CoinGecko.py-FUNC:create_temp_df-LINE:123-The csv file for Bitcoin's historical data was successfully created
+2022-08-17 15:11:06,673-INFO-FILE:CoinGecko.py-FUNC:create_temp_df-LINE:147-The csv file for Bitcoin's historical data was successfully deleted from the device
+2022-08-17 15:11:07,274-INFO-FILE:CoinGecko.py-FUNC:wallets_scraper-LINE:161-The request for Bitcoin's main website was successful
+2022-08-17 15:11:08,010-INFO-FILE:CoinGecko.py-FUNC:get_soup-LINE:61-The request for CoinGecko's main website was successful
+2022-08-17 15:11:08,493-INFO-FILE:CoinGecko.py-FUNC:csv_reader-LINE:96-The request for Ethereum's historical data was successful
+2022-08-17 15:11:10,912-INFO-FILE:CoinGecko.py-FUNC:create_temp_df-LINE:123-The csv file for Ethereum's historical data was successfully created
+2022-08-17 15:11:10,921-INFO-FILE:CoinGecko.py-FUNC:create_temp_df-LINE:147-The csv file for Ethereum's historical data was successfully deleted from the device
+2022-08-17 15:11:11,254-INFO-FILE:CoinGecko.py-FUNC:wallets_scraper-LINE:161-The request for Ethereum's main website was successful
+2022-08-17 15:11:50,428-INFO-FILE:CoinGecko.py-FUNC:get_soup-LINE:61-The request for CoinGecko's main website was successful
+2022-08-17 15:11:50,946-INFO-FILE:CoinGecko.py-FUNC:get_soup-LINE:61-The request for CoinGecko's main website was successful
+2022-08-17 15:11:51,388-INFO-FILE:CoinGecko.py-FUNC:csv_reader-LINE:96-The request for Bitcoin's historical data was successful
+2022-08-17 15:11:52,663-INFO-FILE:CoinGecko.py-FUNC:create_temp_df-LINE:123-The csv file for Bitcoin's historical data was successfully created
+2022-08-17 15:11:52,685-INFO-FILE:CoinGecko.py-FUNC:create_temp_df-LINE:147-The csv file for Bitcoin's historical data was successfully deleted from the device
+2022-08-17 15:11:52,999-INFO-FILE:CoinGecko.py-FUNC:wallets_scraper-LINE:161-The request for Bitcoin's main website was successful
+2022-08-17 15:11:53,499-INFO-FILE:CoinGecko.py-FUNC:get_soup-LINE:61-The request for CoinGecko's main website was successful
+2022-08-17 15:11:53,944-INFO-FILE:CoinGecko.py-FUNC:csv_reader-LINE:96-The request for Ethereum's historical data was successful
+2022-08-17 15:11:55,847-INFO-FILE:CoinGecko.py-FUNC:create_temp_df-LINE:123-The csv file for Ethereum's historical data was successfully created
+2022-08-17 15:11:55,858-INFO-FILE:CoinGecko.py-FUNC:create_temp_df-LINE:147-The csv file for Ethereum's historical data was successfully deleted from the device
+2022-08-17 15:11:56,194-INFO-FILE:CoinGecko.py-FUNC:wallets_scraper-LINE:161-The request for Ethereum's main website was successful
