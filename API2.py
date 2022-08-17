@@ -3,11 +3,14 @@ import requests
 api_url = "https://api.coingecko.com/api/v3/coins/"
 
 
-def get_json(url_suffix, params=None):
-    """recieves a url of some API address
-       returns a json file of its content
-       """
-    resp = requests.get(url=api_url+url_suffix, params=params)
+def get_json(url_path, params=None):
+    """
+    Performs a request to get a JSON file
+    @param url_path: URL path
+    @param params: parameters for the request
+    @return: a JSON file of its content
+    """
+    resp = requests.get(url=api_url + url_path, params=params)
     return resp.json()
 
 
@@ -15,12 +18,20 @@ BIT_TO_USD = get_json('usd-coin')['market_data']['current_price']['btc']
 
 
 def get_coin_current_price(json_coin):
-    """recieves a json file of a coin and returns its current price in USD"""
+    """
+    Searches for a coin's price
+    @param json_coin: JSON file of a coin
+    @return: a coin's current price in USD
+    """
     return json_coin['market_data']['current_price']['btc']/BIT_TO_USD
 
 
 def get_coin_market_cap(json_coin):
-    """recieves a json file of a coin and returns its market_cap in USD"""
+    """
+    Searches for a coin's market cap
+    @param json_coin: JSON file of a coin
+    @return: a coin's current market cap in USD
+    """
     return json_coin['market_data']['market_cap']['btc']/BIT_TO_USD
 
 
@@ -30,8 +41,7 @@ def get_historical(coin_id, days, vs_currency='usd', interval='daily'):
     return get_json(suffix, params)
 
 
-
-#example
+# Example
 print("example")
 btc_json = get_json('bitcoin')
 eth_json = get_json('ethereum')
