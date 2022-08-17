@@ -36,6 +36,7 @@ The main file that should be run on the terminal is coingecko.py, which imports:
 with the time it took to API.py by running the code with the argparse arguments: -t1 -d10, for only the first coin and 
 10 days of historical data)
 - and database.py, which performs the SQL queries.
+
 The .ipynb is a discontinued version of the project
 
 An ERD of the tables and their relationships used in database.py is included as ERD.png.
