@@ -70,7 +70,7 @@ def main(coins=None, days=10, logger_input=None):
 
     try:
         if days:
-            print(f"last {days} days:")
+            print(f"Historical data of the last {days} days:")
             if coins:
                 print(get_historical(coins[0], 2))
             else:
@@ -81,19 +81,3 @@ def main(coins=None, days=10, logger_input=None):
     end = time.perf_counter()
     print(f'Time taken to get the data from the API: {end - start} seconds.\n')
     return dict_
-
-    # btc_json = get_json('bitcoin')
-    # eth_json = get_json('ethereum')
-    # print(f"Bitcoin value: USD {get_coin_current_price(btc_json)}")
-    # print(f"Ethereum value: USD {get_coin_current_price(eth_json)}")
-    # print(f"\nHistory of last 2 days of Bitcoin:\n{get_historical('Bitcoin', 2)}")
-    # return btc_json, eth_json
-
-
-# Example
-# print("example")
-# btc_json = get_json('bitcoin')
-# eth_json = get_json('ethereum')
-# print(f"bitcoin value: {get_coin_current_price(btc_json)}$")
-# print(f"ethereum value: {get_coin_current_price(eth_json)}$")
-# print(f"\nhistory of last 2 days of bitcoin:\n{get_historical('bitcoin', 2)}")

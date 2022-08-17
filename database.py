@@ -29,8 +29,6 @@ class Database:
         self.cursor = self.connection.cursor()
         self.create_database()
 
-        # logger.info(pd.read_sql("SHOW TABLES", self.connection).Tables_in_crypto_currencies)
-
         tables = pd.read_sql("SHOW TABLES", self.connection).Tables_in_crypto_currencies.to_list()
 
         if 'coins' not in tables:
@@ -62,7 +60,6 @@ class Database:
         end = time.perf_counter()
         print(f'Time taken to store data in SQL: {end - start} seconds.\n')
 
-
     def create_connection(self, use_db=True):
         """
         Creates and returns a connection
@@ -80,10 +77,11 @@ class Database:
 
     def create_database(self):
         """
-        Creates a database named [db_name]
+        Creates a database named like db_name variable
         """
         self.cursor.execute("SHOW DATABASES")
         database_existed = self.cursor.fetchall()
+
         if (self.db_name,) in database_existed:
             self.logger.info("Database already exist")
             self.cursor.execute(f"USE {self.db_name}")
@@ -100,6 +98,7 @@ class Database:
         query = """CREATE TABLE IF NOT EXISTS coins
                     (ID int NOT NULL PRIMARY KEY, coin_name varchar(45), price varchar(45),
                      market_cap varchar(45), coin_url varchar(45))"""
+
         self.cursor.execute(query)
         self.connection.commit()
         self.logger.info("coins table created")
@@ -112,6 +111,7 @@ class Database:
                     (ID int, date varchar(45), price varchar(45),
                      market_cap varchar(45), volume_of_flow varchar(45),
                      FOREIGN KEY (ID) REFERENCES coins(ID))"""
+
         self.cursor.execute(query)
         self.connection.commit()
         self.logger.info("history table created")
@@ -122,6 +122,7 @@ class Database:
         """
         query = """CREATE TABLE wallets
                     (coin_id int, wallet_id int)"""
+
         self.cursor.execute(query)
         self.connection.commit()
         self.logger.info("wallets table created")
@@ -132,6 +133,7 @@ class Database:
         """
         query = """CREATE TABLE wallets_names
                     (wallet_id int NOT NULL PRIMARY KEY, wallet_name varchar(45))"""
+
         self.cursor.execute(query)
         self.connection.commit()
         self.logger.info("wallets_names table created")
@@ -142,7 +144,7 @@ class Database:
         Inserts the new rows and updates the existing ones
         @param data: coins dataframe
         """
-        query = "SELECT coin_name From coins"
+        query = "SELECT coin_name FROM coins"
         existing_coins = pd.read_sql(query, self.connection).coin_name
         index_of_existing_coins = data.coin_name.isin(existing_coins)
 
@@ -163,6 +165,7 @@ class Database:
         query = """UPDATE coins
                     SET price = %(price)s, market_cap = %(market_cap)s
                     WHERE coin_name = %(coin_name)s"""
+
         data = data_to_update.to_dict('records')
 
         try:
@@ -183,6 +186,7 @@ class Database:
         data = data.to_dict('records')
         query = """REPLACE INTO history (ID, price, market_cap, volume_of_flow, date)
                    VALUES (%(coin_id)s, %(price)s, %(market_cap)s, %(total_volume)s, %(snapped_at)s)"""
+
         try:
             self.cursor.executemany(query, data)
             self.connection.commit()
@@ -200,6 +204,7 @@ class Database:
         data = data.to_dict('records')
         query = """INSERT INTO wallets (coin_id, wallet_id)
                     VALUES (%(coin_id)s, %(wallet_id)s)"""
+
         try:
             self.cursor.executemany(query, data)
             self.connection.commit()
@@ -217,6 +222,7 @@ class Database:
         data = data.to_dict('records')
         query = """INSERT INTO wallets_names (wallet_id, wallet_name)
                     VALUES (%(wallet_id)s, %(wallet_name)s)"""
+
         try:
             self.cursor.executemany(query, data)
             self.connection.commit()

@@ -39,7 +39,7 @@ def main():
     coins = scraper_results[0].coin_name.to_list()
     Database(*scraper_results, logger=set_logger('database'))
     API_results = API.main(coins=coins, logger_input=set_logger('API'))
-    print("Data scraped from the API:")
+    print("Data obtained from the API with coin and price in USD:")
     for res in API_results.items():
         print(res)
 
