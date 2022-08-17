@@ -1,5 +1,6 @@
 import requests
 
+
 api_url = "https://api.coingecko.com/api/v3/coins/"
 
 
@@ -39,6 +40,13 @@ def get_historical(coin_id, days, vs_currency='usd', interval='daily'):
     params = dict(days=days, vs_currency=vs_currency, interval=interval)
     suffix = coin_id + '/market_chart'
     return get_json(suffix, params)
+
+
+def main(logger_input=None):
+    global logger
+    logger = logger_input
+    logger.info("in")
+    return "API ran"
 
 
 # Example
