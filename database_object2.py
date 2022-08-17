@@ -6,6 +6,10 @@ class Database:
     DB_NAME = 'crypto_currencies'
 
     def __init__(self, *, coins=None, hist=None, wallets=None, wallets_names=None, db_name=DB_NAME):
+        """
+        Initializes by creating the database and the tables
+        If given dataframes it will insert them to the relevant tables
+        """
         try:
             with open('.gitignore_folder/password.txt') as f:
                 self.PASSWORD = f.read()
@@ -48,7 +52,10 @@ class Database:
             self.append_rows_to_wallets_names(wallets_names)
 
     def create_connection(self, use_db=True):
-        """creates and returns a connection and a cursor"""
+        """
+        Creates and returns a connection
+        @param usd_db: if True uses {DB_NAME} as the database in the connection, otherwise doe'snt use database
+        """
         if use_db:
             return pymysql.connect(host='localhost',
                                    user='root',
@@ -60,6 +67,9 @@ class Database:
                                    password=self.PASSWORD)
 
     def create_database(self):
+        """
+        Creates a database named {db_name}
+        """
         self.cursor.execute("SHOW DATABASES")
         database_existed = self.cursor.fetchall()
         if (self.db_name,) in database_existed:
@@ -72,6 +82,9 @@ class Database:
             self.cursor.execute(f"USE {self.DB_NAME}")
 
     def create_coins_table(self):
+        """
+        Creates the table 'coins' in the database
+        """
         query = """CREATE TABLE IF NOT EXISTS coins
                     (ID int NOT NULL PRIMARY KEY, coin_name varchar(45), price varchar(45),
                      market_cap varchar(45), coin_url varchar(45))"""
@@ -80,6 +93,9 @@ class Database:
         print("coins table created")
 
     def create_history_table(self):
+        """
+        Creates a table called 'history' in the database
+        """
         query = """CREATE TABLE IF NOT EXISTS history
                     (ID int, date varchar(45), price varchar(45),
                      market_cap varchar(45), volume_of_flow varchar(45),
@@ -89,6 +105,9 @@ class Database:
         print("history table created")
 
     def create_wallets_table(self):
+        """
+        Creates a table called 'wallets' in the database
+        """
         query = """CREATE TABLE wallets
                     (coin_id int, wallet_id int)"""
         self.cursor.execute(query)
@@ -96,6 +115,9 @@ class Database:
         print("wallets table created")
 
     def create_wallets_names_table(self):
+        """
+        Creates a table called 'wallets_names' in the database
+        """
         query = """CREATE TABLE wallets_names
                     (wallet_id int NOT NULL PRIMARY KEY, wallet_name varchar(45))"""
         self.cursor.execute(query)
@@ -105,6 +127,8 @@ class Database:
     def append_rows_to_coins(self, data):
         """
         :data: DataFrame of coins
+        Seperates new data and data that is already in the coins table,
+        Inserts the new data and updates the existings
         """
         query = "SELECT coin_name From coins"
         existing_coins = pd.read_sql(query, self.connection).coin_name
@@ -129,6 +153,12 @@ class Database:
         print(f"{len(data_to_update)} rows were successfully updated")
 
     def append_rows_to_history(self, data):
+         """
+        Gets the data as a Pandas dataframe with columns:
+        ['coin_id', 'total_volume', 'price', 'market_cap', 'snapped_at'].
+        Inserts it into the 'history' table
+        @param data: Pandas dataframe
+        """
         data.fillna(method='ffill', inplace=True)
         data = data.to_dict('records')
         query = """REPLACE INTO history (ID, price, market_cap, volume_of_flow, date)
@@ -138,6 +168,12 @@ class Database:
         print(f"{len(data)} rows were successfully uploaded to the history table")
 
     def append_rows_to_wallets(self, data):
+        """
+        Gets the data as a Pandas dataframe with columns:
+        ['coin_id', 'wallet_id'].
+        Inserts it into the 'wallets' table
+        @param data: Pandas dataframe
+        """
         data = data.to_dict('records')
         query = """INSERT INTO wallets (coin_id, wallet_id)
                     VALUES (%(coin_id)s, %(wallet_id)s)"""
@@ -146,6 +182,12 @@ class Database:
         print(f"{len(data)} rows were successfully uploaded to the wallets table")
 
     def append_rows_to_wallets_names(self, data):
+        """
+        Gets the data as a Pandas dataframe with columns:
+        ['wallet_name', 'wallet_id'].
+        Inserts it into the 'wallets_name' table
+        @param data: Pandas dataframe
+        """
         data = data.to_dict('records')
         query = """INSERT INTO wallets_names (wallet_id, wallet_name)
                     VALUES (%(wallet_id)s, %(wallet_name)s)"""
@@ -153,16 +195,9 @@ class Database:
         self.connection.commit()
         print(f"{len(data)} rows were successfully uploaded to the wallets_names table")
 
-    def show_tables(self):
-        self.cursor.execute("SHOW TABLES")
-        print(self.cursor.fetchall())
-
-    def show_table(self, table_name):
-        self.cursor.execute(f"SELECT * FROM {table_name}")
-        print(f"content of {table_name}")
-        print(self.cursor.fetchall())
-
     def close_connection(self):
+        """closes the cursor and the connection.
+            Good Night."""
         self.cursor.close()
         self.connection.close()
         print("connection closed")
