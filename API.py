@@ -42,9 +42,9 @@ def get_historical(coin_id, days, vs_currency='usd', interval='daily'):
 
 
 # Example
-print("example")
-btc_json = get_json('bitcoin')
-eth_json = get_json('ethereum')
-print(f"bitcoin value: {get_coin_current_price(btc_json)}$")
-print(f"ethereum value: {get_coin_current_price(eth_json)}$")
-print(f"\nhistory of last 2 days of bitcoin:\n{get_historical('bitcoin', 2)}")
+# print("example")
+# btc_json = get_json('bitcoin')
+# eth_json = get_json('ethereum')
+# print(f"bitcoin value: {get_coin_current_price(btc_json)}$")
+# print(f"ethereum value: {get_coin_current_price(eth_json)}$")
+# print(f"\nhistory of last 2 days of bitcoin:\n{get_historical('bitcoin', 2)}")

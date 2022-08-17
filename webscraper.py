@@ -226,7 +226,7 @@ def web_scraper(url, soup, f, t, days, date):
     for link in tqdm(scraped_links[f: t], total=t-f):
         coin_id += 1
         coin_name = link.findChild().text.strip()
-        print(coin_name)
+        # print(coin_name)
         coin_url = url + link['href']
         html_coin = get_soup(coin_url)
         dom = etree.HTML(str(html_coin))
@@ -320,6 +320,9 @@ def main():
     - calls the get_soup and web_scraper functions
     - returns three dataframes returned by the web_scraped function
     """
+    print('Performing the web scraping task with the requests module...')
+    start = time.perf_counter()
+
     f = args.from_coin
     t = args.to_coin
     days = args.days
@@ -356,15 +359,20 @@ def main():
     url, soup = get_soup(COINGECKO_URL)
     df_coins, df_historical, df_wallets, df_distinct_wallets = web_scraper(url, soup, f, t, days, date)
 
+    # Saving to SQL
+    # Database(coins=df_coins, hist=df_historical, wallets=df_wallets, wallets_names=df_distinct_wallets)
+
     return df_coins, df_historical, df_wallets, df_distinct_wallets
     # return df_coins, df_historical
 
+    end = time.perf_counter()
+    print(f'Time taken to get the data with requests module: {end - start} seconds.\n')
 
-if __name__ == '__main__':
-    print('Performing the web scraping task with the requests module...')
-    start = time.perf_counter()
 
-    print(main())
+# if __name__ == '__main__':
+#
+#
+#     print(main())
     # coins, historical_data = main()
     # print(f"within CoinGecko:\n{coins}", end='\n\n')
     # # Saving to SQL
@@ -372,5 +380,4 @@ if __name__ == '__main__':
     # db.append_rows_to_coins(coins)
     # db.append_rows_to_history(historical_data)
 
-    end = time.perf_counter()
-    print(f'Time taken to get the data with requests module: {end - start} seconds.\n')
+
