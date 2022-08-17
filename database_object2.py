@@ -7,12 +7,12 @@ class Database:
 
     def __init__(self, df=None, df_hist=None, db_name=DB_NAME):
         try:
-            with open('.gitignore_folder\password.txt') as f:
+            with open('.gitignore_folder/password.txt') as f:
                 self.PASSWORD = f.read()
         except FileNotFoundError:
             self.PASSWORD = input("provide password for mySQL server: ")
-        self.db_name = db_name
 
+        self.db_name = db_name
         self.connection = self.create_connection(use_db=False)
         self.cursor = self.connection.cursor()
         self.create_database()
@@ -137,3 +137,5 @@ class Database:
         self.cursor.close()
         self.connection.close()
         print("connection closed")
+
+db = Database()
