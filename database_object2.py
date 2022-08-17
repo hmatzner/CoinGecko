@@ -1,11 +1,32 @@
 import pymysql
 import pandas as pd
+import logging
+
+
+logger = logging.getLogger('SQL')
+logger.setLevel(logging.DEBUG)
+
+formatter = logging.Formatter('%(asctime)s-%(levelname)s-FILE:%(filename)s-FUNC:%(funcName)s-LINE:%(lineno)d-%(message)s')
+
+file_handler = logging.FileHandler('database.log')
+file_handler.setLevel(logging.INFO)
+file_handler.setFormatter(formatter)
+logger.addHandler(file_handler)
+
+stream_handler = logging.StreamHandler(sys.stdout)
+stream_handler.setLevel(logging.ERROR)
+stream_handler.setFormatter(formatter)
+logger.addHandler(stream_handler)
 
 
 class Database:
     DB_NAME = 'crypto_currencies'
 
-    def __init__(self, *, coins=None, hist=None, wallets=None, wallets_names=None, db_name=DB_NAME):
+    def __init__(self, coins=None, hist=None, wallets=None, wallets_names=None, db_name=DB_NAME):
+        """
+        Initializes by creating the database and the tables
+        If given dataframes it will insert them to the relevant tables
+        """
         try:
             with open('.gitignore_folder/password.txt') as f:
                 self.PASSWORD = f.read()
@@ -17,26 +38,26 @@ class Database:
         self.cursor = self.connection.cursor()
         self.create_database()
 
-        # print(pd.read_sql("SHOW TABLES", self.connection).Tables_in_crypto_currencies)
+        # logger.info(pd.read_sql("SHOW TABLES", self.connection).Tables_in_crypto_currencies)
 
         tables = pd.read_sql("SHOW TABLES", self.connection).Tables_in_crypto_currencies.to_list()
 
         if 'coins' not in tables:
             self.create_coins_table()
         else:
-            print("coins table was already existed")
+            logger.info("coins table was already existed")
         if 'history' not in tables:
             self.create_history_table()
         else:
-            print("history table was already existed")
+            logger.info("history table was already existed")
         if 'wallets' not in tables:
             self.create_wallets_table()
         else:
-            print("wallets table was already existed")
+            logger.info("wallets table was already existed")
         if 'wallets_names' not in tables:
             self.create_wallets_names_table()
         else:
-            print("wallets_names table was already existed")
+            logger.info("wallets_names table was already existed")
 
         if coins is not None:
             self.append_rows_to_coins(coins)
@@ -48,7 +69,10 @@ class Database:
             self.append_rows_to_wallets_names(wallets_names)
 
     def create_connection(self, use_db=True):
-        """creates and returns a connection and a cursor"""
+        """
+        Creates and returns a connection
+        @param usd_db: if True uses {DB_NAME} as the database in the connection, otherwise doe'snt use database
+        """
         if use_db:
             return pymysql.connect(host='localhost',
                                    user='root',
@@ -60,51 +84,68 @@ class Database:
                                    password=self.PASSWORD)
 
     def create_database(self):
+        """
+        Creates a database named {db_name}
+        """
         self.cursor.execute("SHOW DATABASES")
         database_existed = self.cursor.fetchall()
         if (self.db_name,) in database_existed:
-            print("Database already exist")
+            logger.info("Database already exist")
             self.cursor.execute(f"USE {self.db_name}")
         else:
             self.cursor.execute(f"CREATE DATABASE {self.DB_NAME}")
             self.connection.commit()
-            print("Database created")
+            logger.info("Database created")
             self.cursor.execute(f"USE {self.DB_NAME}")
 
     def create_coins_table(self):
+        """
+        Creates the table 'coins' in the database
+        """
         query = """CREATE TABLE IF NOT EXISTS coins
                     (ID int NOT NULL PRIMARY KEY, coin_name varchar(45), price varchar(45),
                      market_cap varchar(45), coin_url varchar(45))"""
         self.cursor.execute(query)
         self.connection.commit()
-        print("coins table created")
+        logger.info("coins table created")
 
     def create_history_table(self):
+        """
+        Creates a table called 'history' in the database
+        """
         query = """CREATE TABLE IF NOT EXISTS history
                     (ID int, date varchar(45), price varchar(45),
                      market_cap varchar(45), volume_of_flow varchar(45),
                      FOREIGN KEY (ID) REFERENCES coins(ID))"""
         self.cursor.execute(query)
         self.connection.commit()
-        print("history table created")
+        logger.info("history table created")
 
     def create_wallets_table(self):
+        """
+        Creates a table called 'wallets' in the database
+        """
         query = """CREATE TABLE wallets
                     (coin_id int, wallet_id int)"""
         self.cursor.execute(query)
         self.connection.commit()
-        print("wallets table created")
+        logger.info("wallets table created")
 
     def create_wallets_names_table(self):
+        """
+        Creates a table called 'wallets_names' in the database
+        """
         query = """CREATE TABLE wallets_names
                     (wallet_id int NOT NULL PRIMARY KEY, wallet_name varchar(45))"""
         self.cursor.execute(query)
         self.connection.commit()
-        print("wallets_names table created")
+        logger.info("wallets_names table created")
 
     def append_rows_to_coins(self, data):
         """
         :data: DataFrame of coins
+        Seperates new data and data that is already in the coins table,
+        Inserts the new data and updates the existings
         """
         query = "SELECT coin_name From coins"
         existing_coins = pd.read_sql(query, self.connection).coin_name
@@ -116,53 +157,80 @@ class Database:
         query = """INSERT INTO coins (ID, coin_name, price, market_cap, coin_url)
                     VALUES (%s, %s, %s, %s, %s)"""
         data = data_to_append.values.tolist()
-        self.cursor.executemany(query, data)
-        self.connection.commit()
-        print(f"{len(data_to_append)} rows were successfully uploaded")
+        try:
+            self.cursor.executemany(query, data)
+            self.connection.commit()
+            logger.info(f"{len(data_to_append)} rows were successfully uploaded")
+        except Exception as e:
+            logger.info(e)
 
         query = """UPDATE coins
                     SET price = %(price)s, market_cap = %(market_cap)s
                     WHERE coin_name = %(coin_name)s"""
         data = data_to_update.to_dict('records')
-        self.cursor.executemany(query, data)
-        self.connection.commit()
-        print(f"{len(data_to_update)} rows were successfully updated")
+        try:
+            self.cursor.executemany(query, data)
+            self.connection.commit()
+            logger.info(f"{len(data_to_update)} rows were successfully updated")
+        except Exception as e:
+            logger.info(e)
+
 
     def append_rows_to_history(self, data):
+         """
+        Gets the data as a Pandas dataframe with columns:
+        ['coin_id', 'total_volume', 'price', 'market_cap', 'snapped_at'].
+        Inserts it into the 'history' table
+        @param data: Pandas dataframe
+        """
         data.fillna(method='ffill', inplace=True)
         data = data.to_dict('records')
         query = """REPLACE INTO history (ID, price, market_cap, volume_of_flow, date)
                    VALUES (%(coin_id)s, %(price)s, %(market_cap)s, %(total_volume)s, %(snapped_at)s)"""
-        self.cursor.executemany(query, data)
-        self.connection.commit()
-        print(f"{len(data)} rows were successfully uploaded to the history table")
+        try:
+            self.cursor.executemany(query, data)
+            self.connection.commit()
+            logger.info(f"{len(data)} rows were successfully uploaded to the history table")
+        except Exception as e:
+            logger.info(e)
 
     def append_rows_to_wallets(self, data):
+        """
+        Gets the data as a Pandas dataframe with columns:
+        ['coin_id', 'wallet_id'].
+        Inserts it into the 'wallets' table
+        @param data: Pandas dataframe
+        """
         data = data.to_dict('records')
         query = """INSERT INTO wallets (coin_id, wallet_id)
                     VALUES (%(coin_id)s, %(wallet_id)s)"""
-        self.cursor.executemany(query, data)
-        self.connection.commit()
-        print(f"{len(data)} rows were successfully uploaded to the wallets table")
+        try:
+            self.cursor.executemany(query, data)
+            self.connection.commit()
+            logger.info(f"{len(data)} rows were successfully uploaded to the wallets table")
+        except Exception as e:
+            logger.info(e)
 
     def append_rows_to_wallets_names(self, data):
+        """
+        Gets the data as a Pandas dataframe with columns:
+        ['wallet_name', 'wallet_id'].
+        Inserts it into the 'wallets_name' table
+        @param data: Pandas dataframe
+        """
         data = data.to_dict('records')
         query = """INSERT INTO wallets_names (wallet_id, wallet_name)
                     VALUES (%(wallet_id)s, %(wallet_name)s)"""
-        self.cursor.executemany(query, data)
-        self.connection.commit()
-        print(f"{len(data)} rows were successfully uploaded to the wallets_names table")
-
-    def show_tables(self):
-        self.cursor.execute("SHOW TABLES")
-        print(self.cursor.fetchall())
-
-    def show_table(self, table_name):
-        self.cursor.execute(f"SELECT * FROM {table_name}")
-        print(f"content of {table_name}")
-        print(self.cursor.fetchall())
+        try:
+            self.cursor.executemany(query, data)
+            self.connection.commit()
+            logger.info(f"{len(data)} rows were successfully uploaded to the wallets_names table")
+        except Exception as e:
+            logger.info(e)
 
     def close_connection(self):
+        """closes the cursor and the connection.
+            Good Night."""
         self.cursor.close()
         self.connection.close()
-        print("connection closed")
+        logger.info("connection closed")
