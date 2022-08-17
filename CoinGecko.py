@@ -250,7 +250,7 @@ def web_scraper(url, soup, f, t, days, date):
         # Appends to a list all relevant information of a coin
         list_of_coins.append([coin_name, price, market_cap, coin_url])
 
-        # URL of the historical data of a coin
+        # Creates a variable with the historical data's URL of a coin
         url_historical = coin_url + '/historical_data#panel'
 
         # Creates a csv file with the historical data of a coin
@@ -275,8 +275,6 @@ def web_scraper(url, soup, f, t, days, date):
             for wallet in wallets_of_each_coin:
                 distinct_wallets.add(wallet)
                 list_of_wallets.append([coin_id, wallet])
-
-    # print(f'list of distinct wallets: {distinct_wallets}')
 
     # Creates the coins, wallets and distinct wallets dataframes and assigns an id column where necessary
     df_coins = pd.DataFrame(list_of_coins, columns=['coin_name', 'price', 'market_cap', 'URL'])
