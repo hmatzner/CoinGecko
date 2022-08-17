@@ -37,10 +37,11 @@ def main():
     """
     scraper_results = webscraper.main()
     coins = scraper_results[0].coin_name.to_list()
-    # Database(*scraper_results, logger=set_logger('database'))
+    Database(*scraper_results, logger=set_logger('database'))
     API_results = API.main(coins=coins, logger_input=set_logger('API'))
-    for res in API_results:
-        print(res, end='\n\n')
+    print("Data scraped from the API:")
+    for res in API_results.items():
+        print(res)
 
 
 if __name__ == '__main__':

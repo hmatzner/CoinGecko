@@ -57,24 +57,30 @@ def main(coins=None, days=10, logger_input=None):
     global logger
     logger = logger_input
     logger.info("in")
+    dict_ = dict()
     try:
         if coins:
+            coins = [coin.lower() for coin in coins]
+            print(coins)
             for coin in coins:
                 data = get_json(coin)
+                dict_[coin] = get_coin_current_price(data)
     except Exception as e:
         logger.error(e)
 
     try:
         if days:
+            print(f"last {days} days:")
             if coins:
-                get_historical(coins[0], 2)
+                print(get_historical(coins[0], 2))
             else:
-                get_historical('Bitcoin', 2)
+                print(get_historical('Bitcoin', 2))
     except Exception as e:
         logger.error(e)
 
     end = time.perf_counter()
-    print(f'Time taken to get the data with requests module: {end - start} seconds.\n')
+    print(f'Time taken to get the data from the API: {end - start} seconds.\n')
+    return dict_
 
     # btc_json = get_json('bitcoin')
     # eth_json = get_json('ethereum')

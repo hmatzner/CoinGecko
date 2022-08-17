@@ -60,7 +60,7 @@ class Database:
             self.append_rows_to_wallets_names(wallets_names)
 
         end = time.perf_counter()
-        print(f'Time taken to get the data with requests module: {end - start} seconds.\n')
+        print(f'Time taken to store data in SQL: {end - start} seconds.\n')
 
 
     def create_connection(self, use_db=True):
