@@ -168,7 +168,6 @@ class Database:
 
     def append_rows_to_history(self, data):
         """
-
         Gets the data as a Pandas dataframe with columns:
         ['coin_id', 'total_volume', 'price', 'market_cap', 'snapped_at'].
         Inserts it into the 'history' table
@@ -220,8 +219,9 @@ class Database:
             self.logger.info(e)
 
     def close_connection(self):
-        """closes the cursor and the connection.
-            Good Night."""
+        """
+        Closes the cursor and the connection.
+        """
         self.cursor.close()
         self.connection.close()
-        self.logger.info("connection closed")
+        self.logger.info("Connection closed")

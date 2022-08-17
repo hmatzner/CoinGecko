@@ -33,10 +33,9 @@ def set_logger(name):
 
 def main():
     """
-    Main function of the module that calls the webscraper, API and database files
+    Main function of the module that calls the web scraper, API and database files
     """
-    # df_coins, df_historical, df_wallets, df_distinct_wallets = webscraper.main()
-    # Database(*webscraper.main(), logger=set_logger('database'))
+    Database(*webscraper.main(), logger=set_logger('database'))
     print(API.main(logger_input=set_logger('API')))
 
 

@@ -12,7 +12,7 @@ import lxml.html
 from urllib.request import Request, urlopen
 from datetime import datetime
 from tqdm import tqdm
-from database_object2 import Database
+from database import Database
 
 
 COINGECKO_URL = 'https://www.coingecko.com'

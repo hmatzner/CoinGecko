@@ -46,7 +46,12 @@ def main(logger_input=None):
     global logger
     logger = logger_input
     logger.info("in")
-    return "API ran"
+    btc_json = get_json('bitcoin')
+    eth_json = get_json('ethereum')
+    print(f"Bitcoin value: USD {get_coin_current_price(btc_json)}")
+    print(f"Ethereum value: USD {get_coin_current_price(eth_json)}")
+    print(f"\nHistory of last 2 days of Bitcoin:\n{get_historical('Bitcoin', 2)}")
+    # return btc_json, eth_json
 
 
 # Example
