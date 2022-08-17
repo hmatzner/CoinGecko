@@ -37,7 +37,8 @@ args = parser.parse_args()
 logger = logging.getLogger('CoinGecko')
 logger.setLevel(logging.DEBUG)
 
-formatter = logging.Formatter('%(asctime)s-%(levelname)s-FILE:%(filename)s-FUNC:%(funcName)s-LINE:%(lineno)d-%(message)s')
+formatter = logging.Formatter('%(asctime)s-%(levelname)s-FILE:%(filename)s-FUNC:%(funcName)s'
+                              '-LINE:%(lineno)d-%(message)s')
 
 file_handler = logging.FileHandler('coins.log')
 file_handler.setLevel(logging.INFO)
@@ -109,6 +110,7 @@ def create_temp_df(coin_id, coin_name, csv_file, days, date):
     """
     Creates a csv file of the coin's historical data, creates a temporary dataframe and removes the csv file.
     @param coin_id: index of the coin
+    @param coin_name: name of the coin
     @param csv_file: csv format file of the coin's historical data
     @param days: argument passed by the user, specifies how many days of data to save in the dataframe
     @param date: argument passed by the user, specifies from which date of data to save in the dataframe
@@ -152,7 +154,8 @@ def create_temp_df(coin_id, coin_name, csv_file, days, date):
 def wallets_scraper(coin_url, coin_name, dom):
     """
     Performs a request and gets the wallets of each coin
-    @param coin_url: url of the specific coin
+    @param coin_url: url of the coin
+    @param coin_name: name of the coin
     @param dom: etree created with an XPath
     @return: a list of wallets of the coin, or None if the coin doesn't have any
     """
