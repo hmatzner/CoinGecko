@@ -9,6 +9,9 @@ import lxml.html
 from urllib.request import Request, urlopen
 from datetime import datetime
 from tqdm import tqdm
+import logging
+import sys
+import time
 from database_object2 import Database
 
 
@@ -31,6 +34,21 @@ the historical data (format: YYYY-MM-DD, default: maximum available for each coi
 
 args = parser.parse_args()
 
+logger = logging.getLogger('CoinGecko')
+logger.setLevel(logging.DEBUG)
+
+formatter = logging.Formatter('%(asctime)s-%(levelname)s-FILE:%(filename)s-FUNC:%(funcName)s-LINE:%(lineno)d-%(message)s')
+
+file_handler = logging.FileHandler('coins.log')
+file_handler.setLevel(logging.INFO)
+file_handler.setFormatter(formatter)
+logger.addHandler(file_handler)
+
+stream_handler = logging.StreamHandler(sys.stdout)
+stream_handler.setLevel(logging.ERROR)
+stream_handler.setFormatter(formatter)
+logger.addHandler(stream_handler)
+
 
 def get_soup(url):
     """
@@ -39,6 +57,10 @@ def get_soup(url):
     @return: tuple of same url parameter and Beautiful Soup object created
     """
     r = requests.get(url)
+    if r:
+        logger.info("The request for CoinGecko's main website was successful")
+    else:
+        logger.error("The request for CoinGecko's main website was not successful")
     html = r.text
     soup = BeautifulSoup(html, 'lxml')
     return url, soup
@@ -62,13 +84,18 @@ def market_scraper(dom, index):
     return dom.xpath(f'/html/body/div[5]/div[{index}]/div[1]/div/div[2]/div[2]/div[1]/div[1]/span[2]/span')[-1].text
 
 
-def csv_reader(url_historical):
+def csv_reader(url_historical, coin_name):
     """
     Performs the request to get the historical data, parses it and reads the csv file from the URL.
     @param url_historical: URL of the historical data of a coin
+    @param coin_name: name of the coin
     @return: a csv file
     """
     r = requests.get(url_historical)
+    if r:
+        logger.info(f"The request for {coin_name}'s historical data was successful")
+    else:
+        logger.error(f"The request for {coin_name}'s historical data was not successful")
     html = r.text
     soup_historical = BeautifulSoup(html, 'lxml')
     historical_links = soup_historical.find_all('a', class_='dropdown-item')[-1]['href']
@@ -78,7 +105,7 @@ def csv_reader(url_historical):
     return csv_file
 
 
-def create_temp_df(coin_id, csv_file, days, date):
+def create_temp_df(coin_id, coin_name, csv_file, days, date):
     """
     Creates a csv file of the coin's historical data, creates a temporary dataframe and removes the csv file.
     @param coin_id: index of the coin
@@ -90,6 +117,12 @@ def create_temp_df(coin_id, csv_file, days, date):
     # Creates a csv file for each coin and writes in it the historical data
     with open(f'csv_{coin_id}', 'wb') as f:
         f.write(csv_file)
+    try:
+        with open(f'csv_{coin_id}', 'rb') as f:
+            f.read()
+        logger.info(f"The csv file for {coin_name}'s historical data was successfully created")
+    except FileNotFoundError:
+        logger.error(f"The csv file for {coin_name}'s historical data was not successfully created")
 
     # Uses the parameter either 'days' or 'date' provided (or not) by the user to create a temporary dataframe
     # that reads the csv file created.
@@ -106,11 +139,17 @@ def create_temp_df(coin_id, csv_file, days, date):
 
     # Removes the file created before
     os.remove(f'csv_{coin_id}')
+    try:
+        with open(f'csv_{coin_id}', 'rb') as f:
+            f.read()
+        logger.error(f"The csv file for {coin_name}'s historical data was not successfully deleted from the device")
+    except FileNotFoundError:
+        logger.info(f"The csv file for {coin_name}'s historical data was successfully deleted from the device")
 
     return temp_df
 
 
-def wallets_scraper(coin_url, dom):
+def wallets_scraper(coin_url, coin_name, dom):
     """
     Performs a request and gets the wallets of each coin
     @param coin_url: url of the specific coin
@@ -118,6 +157,11 @@ def wallets_scraper(coin_url, dom):
     @return: a list of wallets of the coin, or None if the coin doesn't have any
     """
     html = requests.get(coin_url)
+    if html:
+        logger.info(f"The request for {coin_name}'s main website was successful")
+    else:
+        logger.error(f"The request for {coin_name}'s main website was not successful")
+
     doc = lxml.html.fromstring(html.content)
     div_wallet = doc.xpath('//div[@class="coin-link-row tw-mb-0"]')[0]
     wallet = div_wallet.xpath('//span[@class="tw-self-start tw-py-1 tw-my-0.5 tw-min-w-3/10 2xl:tw-min-w-1/4'
@@ -136,7 +180,8 @@ def wallets_scraper(coin_url, dom):
         try:
             # Appends all wallets of a coin until receiving an error when there are no more wallets to do so.
             while True:
-                wallets.append(dom.xpath(f'/html/body/div[5]/div[4]/div[2]/div[2]/div[{index_xpath}]/div/a[{index}]')[-1].text)
+                wallets.append(dom.xpath(f'/html/body/div[5]'
+                                         f'/div[4]/div[2]/div[2]/div[{index_xpath}]/div/a[{index}]')[-1].text)
                 index += 1
         except IndexError:
             # Returns an empty list if no wallets where added in the loop before
@@ -169,7 +214,7 @@ def web_scraper(url, soup, f, t, days, date):
     list_of_coins = list()
     list_of_wallets = list()
     distinct_wallets = set()
-    coin_id = 0
+    coin_id = f
     df_historical = None
 
     print('Information being retrieved...')
@@ -209,10 +254,10 @@ def web_scraper(url, soup, f, t, days, date):
         url_historical = coin_url + '/historical_data#panel'
 
         # Creates a csv file with the historical data of a coin
-        csv_file = csv_reader(url_historical)
+        csv_file = csv_reader(url_historical, coin_name)
 
         # Creates a temporary dataframe with historical data of a coin
-        temp_df = create_temp_df(coin_id, csv_file, days, date)
+        temp_df = create_temp_df(coin_id, coin_name, csv_file, days, date)
 
         # Assuming Bitcoin is the #1 coin. If the flippening was to happen, the code should be revised.
         # Creates the df_historical if it didn't exist; if it did, it concatenates itself with the temporary dataframe
@@ -222,7 +267,7 @@ def web_scraper(url, soup, f, t, days, date):
             df_historical = pd.concat([df_historical, temp_df])
 
         # Creates a list of wallets of a coin
-        wallets_of_each_coin = wallets_scraper(coin_url, dom)
+        wallets_of_each_coin = wallets_scraper(coin_url, coin_name, dom)
 
         # If a coin has wallets (i.e. the list is not empty), appends to the list of wallets each one of them with
         # their respective coin id
@@ -240,6 +285,12 @@ def web_scraper(url, soup, f, t, days, date):
     df_distinct_wallets = pd.DataFrame(distinct_wallets, columns=['wallets'])
     df_distinct_wallets['wallet_id'] = range(1, len(df_distinct_wallets) + 1)
 
+    # Replaces the column with the name of the wallets with another one with their id
+    wallets_map = df_distinct_wallets.wallets.to_dict()
+    wallets_map = {v: k for k, v in wallets_map.items()}
+    df_wallets['wallets'] = df_wallets['wallets'].apply(lambda x: wallets_map[x] + 1)
+    df_wallets = df_wallets.rename(columns={'wallets': 'wallet_id'})
+
     # Changes the format of the price and market cap columns in the coins dataframe
     for column in ('price', 'market_cap'):
         df_coins[column] = df_coins[column].str.replace(',', '', regex=False)
@@ -256,8 +307,6 @@ def web_scraper(url, soup, f, t, days, date):
     for dataframe in (df_coins, df_historical):
         first_column = dataframe.pop('coin_id')
         dataframe.insert(0, 'coin_id', first_column)
-
-    #  TODO: change name of wallet in df_wallets to wallet_id
 
     print('\n')
     return df_coins, df_historical, df_wallets, df_distinct_wallets
@@ -311,6 +360,9 @@ def main():
 
 
 if __name__ == '__main__':
+    print('Performing the web scraping task with the requests module...')
+    start = time.perf_counter()
+
     print(main())
     # coins, historical_data = main()
     # print(f"within CoinGecko:\n{coins}", end='\n\n')
@@ -318,3 +370,6 @@ if __name__ == '__main__':
     # db = Database()
     # db.append_rows_to_coins(coins)
     # db.append_rows_to_history(historical_data)
+
+    end = time.perf_counter()
+    print(f'Time taken to get the data with requests module: {end - start} seconds.\n')
