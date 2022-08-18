@@ -3,6 +3,7 @@ from database import Database
 import API
 import logging
 import sys
+import argparse
 
 
 def set_logger(name):
@@ -31,17 +32,83 @@ def set_logger(name):
     return logger
 
 
+def argparse_handler():
+    MIN_NUMBER_OF_COINS = 1
+    MAX_NUMBER_OF_COINS = 100
+
+    parser = argparse.ArgumentParser(description="Useful information: 'd' and 'D' are mutually exclusive and \
+    only one of them is expected at most.")
+    parser.add_argument('-f', '--from_coin', type=int, metavar='', help='Input from which coin (1 to 100), \
+    you would like to receive information about. Default value: f=1.')
+    parser.add_argument('-t', '--to_coin', type=int, metavar='', help='Input until which coin (1 to 100), \
+    you would like to receive information about. Default value: t=100.')
+
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument('-d', '--days', type=int, metavar='', help='Input number of days of historical \
+    data you want to see (default: maximum available for each coin).')
+    group.add_argument('-D', '--date', type=str, metavar='', help='Input from which date you want to see \
+    the historical data (format: YYYY-MM-DD, default: maximum available for each coin).')
+
+    args = parser.parse_args()
+
+    f = args.from_coin
+    t = args.to_coin
+    days = args.days
+    date = args.date
+
+    if f is None:
+        f = MIN_NUMBER_OF_COINS
+    if f not in range(1, MAX_NUMBER_OF_COINS + 1):
+        print("ERROR: The value of the argument 'from_coin' must be an integer from 1 to 100.")
+        return
+    f -= 1
+
+    if t is None:
+        t = MAX_NUMBER_OF_COINS
+    if t not in range(1, MAX_NUMBER_OF_COINS + 1):
+        print("ERROR: The value of the argument 'to_coin' must be an integer from 1 to 100.")
+        return
+
+    if date is not None:
+        date_correct = re.search('^\\d{4}-\\d{2}-\\d{2}$', date)
+        if date_correct is None:
+            print("ERROR: The format of the argument 'date' should be YYYY-MM-DD.")
+            return
+        try:
+            date = datetime.strptime(date, '%Y-%m-%d')
+        except ValueError:
+            print("ERROR: The argument 'date' is invalid.")
+            return
+
+    if days is not None and days < 0:
+        print("ERROR: The argument 'days' should be a non-negative integer.")
+        return
+
+    return {'f': f, 't':t, 'date':date, 'days':days}
+
+
 def main():
     """
     Main function of the module that calls the web scraper, API and database files
     """
-    scraper_results = webscraper.main()
-    coins = scraper_results[0].coin_name.to_list()
-    Database(*scraper_results, logger=set_logger('database'))
-    API_results = API.main(coins=coins, logger_input=set_logger('API'))
+    args = argparse_handler()
+
+    scraper_results = webscraper.main(**args)
+
+    coins = scraper_results['coins'].coin_name.to_list()
+
+    # matching names returned from webscraper to those database recieve
+    keys_matcher = {'coins': 'coins', 'historical': 'hist', 'wallets': 'wallets', 'distinct_wallets': 'wallets_names'}
+    database_args = {keys_matcher[k]: v for k,v in scraper_results.items()}
+
+    db = Database(**database_args, logger=set_logger('database'))
+
+    API_results = API.main(coins=coins, logger=set_logger('API'))
     print("Data obtained from the API with coin and price in USD:")
-    for res in API_results.items():
-        print(res)
+    for coin,val in API_results.items():
+        print(coin.title(), val)
+
+    db.close_connection()
 
 
 if __name__ == '__main__':

@@ -73,20 +73,29 @@ def fix_time_stamps(history_json):
         logger.error(e)
 
 
-def main(coins=None, days=10, logger_input=None):
+def fix_price(bigint):
+    return str(round(bigint, 1))+'$'
+
+
+def fix_prices(json):
+    for k,lst in json.items():
+        json[k] = [[sub_list[0], fix_price(sub_list[1])] for sub_list in lst]
+    return json
+
+
+def main(coins=None, days=10, logger=None):
     start = time.perf_counter()
-    global logger
-    logger = logger_input
-    logger.info("in")
+
     dict_ = dict()
-    try:
-        if coins:
-            coins = [coin.lower() for coin in coins]
-            for coin in coins:
+    if coins:
+        coins = [coin.lower() for coin in coins]
+        for coin in coins:
+            try:
                 data = get_json(coin)
-                dict_[coin] = get_coin_current_price(data)
-    except Exception as e:
-        logger.error(e)
+                dict_[coin] = fix_price(get_coin_current_price(data))
+                logger.info(f"{coin} successfully retrieved from the API")
+            except Exception as e:
+                logger.error(e)
 
     try:
         if days:
@@ -98,7 +107,7 @@ def main(coins=None, days=10, logger_input=None):
                 coin = 'bitcoin'
 
 
-            historical = get_historical(coin, days)
+            historical = fix_prices(get_historical(coin, days))
             print(f"historical: \n{historical}")
     except Exception as e:
         logger.error(e)

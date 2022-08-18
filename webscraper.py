@@ -2,7 +2,7 @@ import sys
 import os
 import re
 import requests
-import argparse
+# import argparse
 import logging
 import time
 import pandas as pd
@@ -15,23 +15,23 @@ from tqdm import tqdm
 
 
 COINGECKO_URL = 'https://www.coingecko.com'
-MIN_NUMBER_OF_COINS = 1
-MAX_NUMBER_OF_COINS = 100
+# MIN_NUMBER_OF_COINS = 1
+# MAX_NUMBER_OF_COINS = 100
 
-parser = argparse.ArgumentParser(description="Useful information: 'd' and 'D' are mutually exclusive and \
-only one of them is expected at most.")
-parser.add_argument('-f', '--from_coin', type=int, metavar='', help='Input from which coin (1 to 100), \
-you would like to receive information about. Default value: f=1.')
-parser.add_argument('-t', '--to_coin', type=int, metavar='', help='Input until which coin (1 to 100), \
-you would like to receive information about. Default value: t=100.')
-
-group = parser.add_mutually_exclusive_group()
-group.add_argument('-d', '--days', type=int, metavar='', help='Input number of days of historical \
-data you want to see (default: maximum available for each coin).')
-group.add_argument('-D', '--date', type=str, metavar='', help='Input from which date you want to see \
-the historical data (format: YYYY-MM-DD, default: maximum available for each coin).')
-
-args = parser.parse_args()
+# parser = argparse.ArgumentParser(description="Useful information: 'd' and 'D' are mutually exclusive and \
+# only one of them is expected at most.")
+# parser.add_argument('-f', '--from_coin', type=int, metavar='', help='Input from which coin (1 to 100), \
+# you would like to receive information about. Default value: f=1.')
+# parser.add_argument('-t', '--to_coin', type=int, metavar='', help='Input until which coin (1 to 100), \
+# you would like to receive information about. Default value: t=100.')
+#
+# group = parser.add_mutually_exclusive_group()
+# group.add_argument('-d', '--days', type=int, metavar='', help='Input number of days of historical \
+# data you want to see (default: maximum available for each coin).')
+# group.add_argument('-D', '--date', type=str, metavar='', help='Input from which date you want to see \
+# the historical data (format: YYYY-MM-DD, default: maximum available for each coin).')
+#
+# args = parser.parse_args()
 
 logger = logging.getLogger('CoinGecko')
 logger.setLevel(logging.DEBUG)
@@ -309,10 +309,10 @@ def web_scraper(url, soup, f, t, days, date):
         dataframe.insert(0, 'coin_id', first_column)
 
     print('\n')
-    return df_coins, df_historical, df_wallets, df_distinct_wallets
+    dict_ = {'coins': df_coins, 'historical': df_historical, 'wallets': df_wallets, 'distinct_wallets': df_distinct_wallets}
+    return dict_
 
-
-def main():
+def main(**kwargs):
     """
     Main function of the module:
     - checks all four possible arguments provided by the user have a correct value, giving an error message otherwise
@@ -322,41 +322,42 @@ def main():
     print('Performing the web scraping task with the requests module...')
     start = time.perf_counter()
 
-    f = args.from_coin
-    t = args.to_coin
-    days = args.days
-    date = args.date
-
-    if f is None:
-        f = MIN_NUMBER_OF_COINS
-    if f not in range(1, MAX_NUMBER_OF_COINS + 1):
-        print("ERROR: The value of the argument 'from_coin' must be an integer from 1 to 100.")
-        return
-    f -= 1
-
-    if t is None:
-        t = MAX_NUMBER_OF_COINS
-    if t not in range(1, MAX_NUMBER_OF_COINS + 1):
-        print("ERROR: The value of the argument 'to_coin' must be an integer from 1 to 100.")
-        return
-
-    if date is not None:
-        date_correct = re.search('^\\d{4}-\\d{2}-\\d{2}$', date)
-        if date_correct is None:
-            print("ERROR: The format of the argument 'date' should be YYYY-MM-DD.")
-            return
-        try:
-            date = datetime.strptime(date, '%Y-%m-%d')
-        except ValueError:
-            print("ERROR: The argument 'date' is invalid.")
-            return
-
-    if days is not None and days < 0:
-        print("ERROR: The argument 'days' should be a non-negative integer.")
-        return
+    # # argparsing
+    # f = args.from_coin
+    # t = args.to_coin
+    # days = args.days
+    # date = args.date
+    #
+    # if f is None:
+    #     f = MIN_NUMBER_OF_COINS
+    # if f not in range(1, MAX_NUMBER_OF_COINS + 1):
+    #     print("ERROR: The value of the argument 'from_coin' must be an integer from 1 to 100.")
+    #     return
+    # f -= 1
+    #
+    # if t is None:
+    #     t = MAX_NUMBER_OF_COINS
+    # if t not in range(1, MAX_NUMBER_OF_COINS + 1):
+    #     print("ERROR: The value of the argument 'to_coin' must be an integer from 1 to 100.")
+    #     return
+    #
+    # if date is not None:
+    #     date_correct = re.search('^\\d{4}-\\d{2}-\\d{2}$', date)
+    #     if date_correct is None:
+    #         print("ERROR: The format of the argument 'date' should be YYYY-MM-DD.")
+    #         return
+    #     try:
+    #         date = datetime.strptime(date, '%Y-%m-%d')
+    #     except ValueError:
+    #         print("ERROR: The argument 'date' is invalid.")
+    #         return
+    #
+    # if days is not None and days < 0:
+    #     print("ERROR: The argument 'days' should be a non-negative integer.")
+    #     return
 
     url, soup = get_soup(COINGECKO_URL)
-    dataframes = web_scraper(url, soup, f, t, days, date)
+    dataframes = web_scraper(url, soup, kwargs['f'], kwargs['t'], kwargs['days'], kwargs['date'])
 
     end = time.perf_counter()
     print(f'Time taken to get the data with requests module: {end - start} seconds.\n')
