@@ -52,11 +52,6 @@ def set_logger(name):
     return logger
 
 
-# def argparse_handler():
-#
-#
-
-
 def main():
     """
     # TODO
@@ -94,14 +89,6 @@ def main():
         print("ERROR: The argument 'days' should be a non-negative integer.")
         return
 
-    # return {'f': f, 't': t, 'date': date, 'days': days}
-    # return f, t, date, days
-
-
-    # args = argparse_handler()
-    # f, t, date, days = argparse_handler()
-
-    # scraper_results = webscraper.main(args)
     scraper_results = webscraper.main(f, t, days, date)
 
     coins = scraper_results['coins'].coin_name.to_list()

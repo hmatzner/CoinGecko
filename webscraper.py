@@ -313,7 +313,6 @@ def web_scraper(url, soup, f, t, days, date):
     return dict_
 
 
-# def main(**kwargs):
 def main(f, t, days, date):
     """
     Main function of the module:
@@ -324,42 +323,7 @@ def main(f, t, days, date):
     print('Performing the web scraping task with the requests module...')
     start = time.perf_counter()
 
-    # # argparsing
-    # f = args.from_coin
-    # t = args.to_coin
-    # days = args.days
-    # date = args.date
-    #
-    # if f is None:
-    #     f = MIN_NUMBER_OF_COINS
-    # if f not in range(1, MAX_NUMBER_OF_COINS + 1):
-    #     print("ERROR: The value of the argument 'from_coin' must be an integer from 1 to 100.")
-    #     return
-    # f -= 1
-    #
-    # if t is None:
-    #     t = MAX_NUMBER_OF_COINS
-    # if t not in range(1, MAX_NUMBER_OF_COINS + 1):
-    #     print("ERROR: The value of the argument 'to_coin' must be an integer from 1 to 100.")
-    #     return
-    #
-    # if date is not None:
-    #     date_correct = re.search('^\\d{4}-\\d{2}-\\d{2}$', date)
-    #     if date_correct is None:
-    #         print("ERROR: The format of the argument 'date' should be YYYY-MM-DD.")
-    #         return
-    #     try:
-    #         date = datetime.strptime(date, '%Y-%m-%d')
-    #     except ValueError:
-    #         print("ERROR: The argument 'date' is invalid.")
-    #         return
-    #
-    # if days is not None and days < 0:
-    #     print("ERROR: The argument 'days' should be a non-negative integer.")
-    #     return
-
     url, soup = get_soup(COINGECKO_URL)
-    # dataframes = web_scraper(url, soup, kwargs['f'], kwargs['t'], kwargs['days'], kwargs['date'])
     dataframes = web_scraper(url, soup, f, t, days, date)
 
     end = time.perf_counter()
