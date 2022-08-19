@@ -1,6 +1,6 @@
 import sys
 import os
-import re
+# import re
 import requests
 # import argparse
 import logging
@@ -311,6 +311,7 @@ def web_scraper(url, soup, f, t, days, date):
     print('\n')
     dict_ = {'coins': df_coins, 'historical': df_historical, 'wallets': df_wallets, 'distinct_wallets': df_distinct_wallets}
     return dict_
+
 
 def main(**kwargs):
     """

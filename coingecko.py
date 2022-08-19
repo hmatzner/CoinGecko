@@ -1,9 +1,11 @@
-import webscraper
-from database import Database
-import API
-import logging
 import sys
+import logging
 import argparse
+import re
+from datetime import datetime
+import webscraper
+import API
+from database import Database
 
 
 def set_logger(name):
@@ -84,7 +86,7 @@ def argparse_handler():
         print("ERROR: The argument 'days' should be a non-negative integer.")
         return
 
-    return {'f': f, 't':t, 'date':date, 'days':days}
+    return {'f': f, 't': t, 'date': date, 'days': days}
 
 
 def main():
@@ -97,15 +99,15 @@ def main():
 
     coins = scraper_results['coins'].coin_name.to_list()
 
-    # matching names returned from webscraper to those database recieve
+    # matching names returned from webs craper to those database receive
     keys_matcher = {'coins': 'coins', 'historical': 'hist', 'wallets': 'wallets', 'distinct_wallets': 'wallets_names'}
-    database_args = {keys_matcher[k]: v for k,v in scraper_results.items()}
+    database_args = {keys_matcher[k]: v for k, v in scraper_results.items()}
 
     db = Database(**database_args, logger=set_logger('database'))
 
-    API_results = API.main(coins=coins, logger=set_logger('API'))
+    api_results = API.main(coins=coins, logger_input=set_logger('API'))
     print("Data obtained from the API with coin and price in USD:")
-    for coin,val in API_results.items():
+    for coin, val in api_results.items():
         print(coin.title(), val)
 
     db.close_connection()
