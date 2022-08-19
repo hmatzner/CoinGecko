@@ -21,6 +21,10 @@ class Database:
             with open('.gitignore_folder/password.txt') as f:
                 self.PASSWORD = f.read()
         except FileNotFoundError:
+            # try:
+            #     with open('ps.txt') as f:
+            #         self.PASSWORD = f.read()
+            # except FileNotFoundError:
             self.PASSWORD = input("Provide password for MySQL server: ")
 
         self.db_name = db_name

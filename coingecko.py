@@ -7,6 +7,24 @@ import webscraper
 import API
 from database import Database
 
+MIN_NUMBER_OF_COINS = 1
+MAX_NUMBER_OF_COINS = 100
+
+parser = argparse.ArgumentParser(description="Useful information: 'd' and 'D' are mutually exclusive and \
+only one of them is expected at most.")
+parser.add_argument('-f', '--from_coin', type=int, metavar='', help='Input from which coin (1 to 100), \
+you would like to receive information about. Default value: f=1.')
+parser.add_argument('-t', '--to_coin', type=int, metavar='', help='Input until which coin (1 to 100), \
+you would like to receive information about. Default value: t=100.')
+
+group = parser.add_mutually_exclusive_group()
+group.add_argument('-d', '--days', type=int, metavar='', help='Input number of days of historical \
+data you want to see (default: maximum available for each coin).')
+group.add_argument('-D', '--date', type=str, metavar='', help='Input from which date you want to see \
+the historical data (format: YYYY-MM-DD, default: maximum available for each coin).')
+
+args = parser.parse_args()
+
 
 def set_logger(name):
     """
@@ -34,25 +52,15 @@ def set_logger(name):
     return logger
 
 
-def argparse_handler():
-    MIN_NUMBER_OF_COINS = 1
-    MAX_NUMBER_OF_COINS = 100
+# def argparse_handler():
+#
+#
 
-    parser = argparse.ArgumentParser(description="Useful information: 'd' and 'D' are mutually exclusive and \
-    only one of them is expected at most.")
-    parser.add_argument('-f', '--from_coin', type=int, metavar='', help='Input from which coin (1 to 100), \
-    you would like to receive information about. Default value: f=1.')
-    parser.add_argument('-t', '--to_coin', type=int, metavar='', help='Input until which coin (1 to 100), \
-    you would like to receive information about. Default value: t=100.')
 
-    group = parser.add_mutually_exclusive_group()
-    group.add_argument('-d', '--days', type=int, metavar='', help='Input number of days of historical \
-    data you want to see (default: maximum available for each coin).')
-    group.add_argument('-D', '--date', type=str, metavar='', help='Input from which date you want to see \
-    the historical data (format: YYYY-MM-DD, default: maximum available for each coin).')
-
-    args = parser.parse_args()
-
+def main():
+    """
+    # TODO
+    """
     f = args.from_coin
     t = args.to_coin
     days = args.days
@@ -86,27 +94,29 @@ def argparse_handler():
         print("ERROR: The argument 'days' should be a non-negative integer.")
         return
 
-    return {'f': f, 't': t, 'date': date, 'days': days}
+    # return {'f': f, 't': t, 'date': date, 'days': days}
+    # return f, t, date, days
 
 
-def main():
-    """
-    Main function of the module that calls the web scraper, API and database files
-    """
-    args = argparse_handler()
+    # args = argparse_handler()
+    # f, t, date, days = argparse_handler()
 
-    scraper_results = webscraper.main(**args)
+    # scraper_results = webscraper.main(args)
+    scraper_results = webscraper.main(f, t, days, date)
 
     coins = scraper_results['coins'].coin_name.to_list()
 
-    # matching names returned from webs craper to those database receive
+    # matching names returned from web scraper to those database receive
     keys_matcher = {'coins': 'coins', 'historical': 'hist', 'wallets': 'wallets', 'distinct_wallets': 'wallets_names'}
+    # TODO: remove the keys_matcher and make the column names match from the beginning
+
     database_args = {keys_matcher[k]: v for k, v in scraper_results.items()}
 
     db = Database(**database_args, logger=set_logger('database'))
 
     api_results = API.main(coins=coins, logger_input=set_logger('API'))
     print("Data obtained from the API with coin and price in USD:")
+
     for coin, val in api_results.items():
         print(coin.title(), val)
 

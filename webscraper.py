@@ -313,7 +313,8 @@ def web_scraper(url, soup, f, t, days, date):
     return dict_
 
 
-def main(**kwargs):
+# def main(**kwargs):
+def main(f, t, days, date):
     """
     Main function of the module:
     - checks all four possible arguments provided by the user have a correct value, giving an error message otherwise
@@ -358,7 +359,8 @@ def main(**kwargs):
     #     return
 
     url, soup = get_soup(COINGECKO_URL)
-    dataframes = web_scraper(url, soup, kwargs['f'], kwargs['t'], kwargs['days'], kwargs['date'])
+    # dataframes = web_scraper(url, soup, kwargs['f'], kwargs['t'], kwargs['days'], kwargs['date'])
+    dataframes = web_scraper(url, soup, f, t, days, date)
 
     end = time.perf_counter()
     print(f'Time taken to get the data with requests module: {end - start} seconds.\n')
