@@ -298,18 +298,22 @@ def web_scraper(url, soup, f, t, days, date):
         df_coins[column] = df_coins[column].astype(float)
 
     # Changes the format of the price column in the historical data dataframe so it matches the one in coins dataframe
-    df_historical['price'] = df_historical['price'].round(2)
+    # df_historical['price'] = df_historical['price'].round(2)
 
     # Resets the index of the historical dataframe
-    df_historical.reset_index(drop=True, inplace=True)
+    # df_historical.reset_index(drop=True, inplace=True)
 
     # Shifts column 'coin_id' to the first position in df_coins and df_historical
-    for dataframe in (df_coins, df_historical):
+    # for dataframe in (df_coins, df_historical):
+    for dataframe in (df_coins, ):
         first_column = dataframe.pop('coin_id')
         dataframe.insert(0, 'coin_id', first_column)
 
     print('\n')
-    dict_ = {'coins': df_coins, 'historical': df_historical, 'wallets': df_wallets, 'distinct_wallets': df_distinct_wallets}
+    # dict_ = {'coins': df_coins, 'historical': df_historical, 'wallets': df_wallets,
+    #           'distinct_wallets': df_distinct_wallets}
+    dict_ = {'coins': df_coins, 'wallets': df_wallets,
+             'distinct_wallets': df_distinct_wallets}
     return dict_
 
 
