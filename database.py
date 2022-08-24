@@ -30,6 +30,11 @@ class Database:
             self.connection = self.create_connection(use_db=True)
             self.cursor = self.connection.cursor()
 
+        try:
+            print(pd.read_sql("SHOW TABLES", self.connection))
+        except:
+            print("didn't connect to mysql")
+
         end = time.perf_counter()
         print(f'Time taken to store data in SQL: {end - start} seconds.\n')
 
@@ -232,7 +237,6 @@ class Database:
         Inserts it into the 'wallets_name' table
         @param data: Pandas dataframe
         """
-        print(f"(wallets_names)\n{data}")
         data = data.to_dict('records')
 
         query = """INSERT INTO wallets_names (wallet_id, wallet_name)
