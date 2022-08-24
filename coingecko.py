@@ -99,7 +99,7 @@ def main():
 
     database_args = {keys_matcher[k]: v for k, v in scraper_results.items()}
 
-    db = Database(Init=False, logger=set_logger('database'))
+    db = Database(Init=True, logger=set_logger('database'))
     db.update_all(database_args)
     # db = Database(**database_args, logger=set_logger('database'))
 
