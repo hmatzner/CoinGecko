@@ -6,14 +6,9 @@ import time
 class Database:
     DB_NAME = 'crypto_currencies'
 
-    def __init__(self, coins=None, hist=None, wallets=None, wallets_names=None, db_name=DB_NAME, logger=None):
+    def __init__(self, Init=True, db_name=DB_NAME, logger=None):
         """
         Initializes the class by creating the database and the tables
-        @param coins: coins dataframe
-        @param hist: historical data dataframe
-        @param wallets: connection between wallets and coins dataframe
-        @param wallets_names: unique wallets dataframe
-        @param db_name: name of the database
         @param logger: logger object
         """
         start = time.perf_counter()
@@ -21,45 +16,18 @@ class Database:
             with open('.gitignore_folder/password.txt') as f:
                 self.PASSWORD = f.read()
         except FileNotFoundError:
-            # try:
-            #     with open('ps.txt') as f:
-            #         self.PASSWORD = f.read()
-            # except FileNotFoundError:
             self.PASSWORD = input("Provide password for MySQL server: ")
 
         self.db_name = db_name
         self.logger = logger
-        self.connection = self.create_connection(use_db=False)
-        self.cursor = self.connection.cursor()
-        self.create_database()
-
-        tables = pd.read_sql("SHOW TABLES", self.connection).Tables_in_crypto_currencies.to_list()
-
-        if 'coins' not in tables:
-            self.create_coins_table()
+        if Init:
+            self.connection = self.create_connection(use_db=False)
+            self.cursor = self.connection.cursor()
+            self.create_database()
+            self.create_tables()
         else:
-            self.logger.info("Coins table already existed")
-        if 'history' not in tables:
-            self.create_history_table()
-        else:
-            self.logger.info("History table already existed")
-        if 'wallets' not in tables:
-            self.create_wallets_table()
-        else:
-            self.logger.info("Wallets table already existed")
-        if 'wallets_names' not in tables:
-            self.create_wallets_names_table()
-        else:
-            self.logger.info("Wallets names table already existed")
-
-        if coins is not None:
-            self.append_rows_to_coins(coins)
-        if hist is not None:
-            self.append_rows_to_history(hist)
-        if wallets is not None:
-            self.append_rows_to_wallets(wallets)
-        if wallets_names is not None:
-            self.append_rows_to_wallets_names(wallets_names)
+            self.connection = self.create_connection(use_db=True)
+            self.cursor = self.connection.cursor()
 
         end = time.perf_counter()
         print(f'Time taken to store data in SQL: {end - start} seconds.\n')
@@ -87,21 +55,34 @@ class Database:
         database_existed = self.cursor.fetchall()
 
         if (self.db_name,) in database_existed:
-            self.logger.info("Database already exist")
-            self.cursor.execute(f"USE {self.db_name}")
-        else:
-            self.cursor.execute(f"CREATE DATABASE {self.DB_NAME}")
-            self.connection.commit()
-            self.logger.info("Database created")
-            self.cursor.execute(f"USE {self.DB_NAME}")
+            self.logger.info("Database already exist; Deleting it and creating new from scratch")
+            self.cursor.execute(f"DROP DATABASE {self.db_name}")
+
+        self.cursor.execute(f"CREATE DATABASE {self.DB_NAME}")
+        self.connection.commit()
+        self.logger.info("Database created")
+        self.cursor.execute(f"USE {self.DB_NAME}")
+
+    def create_tables(self):
+        """
+        Initalizes 4 tables:
+        Updating data will be stored in coins
+        Historical data will be stored in history
+        Information about wallets will be stored in wallets
+        Connections between coins and wallets will be stored in wallets names
+        """
+        self.create_coins_table()
+        self.create_history_table()
+        self.create_wallets_table()
+        self.create_wallets_names_table()
 
     def create_coins_table(self):
         """
         Creates the 'coins' table in the database
         """
-        query = """CREATE TABLE IF NOT EXISTS coins
+        query = """CREATE TABLE coins
                     (ID int NOT NULL PRIMARY KEY, coin_name varchar(45), price varchar(45),
-                     market_cap varchar(45), coin_url varchar(45))"""
+                     market_cap varchar(45), coin_url varchar(65))"""
 
         self.cursor.execute(query)
         self.connection.commit()
@@ -111,7 +92,7 @@ class Database:
         """
         Creates the 'history' table in the database
         """
-        query = """CREATE TABLE IF NOT EXISTS history
+        query = """CREATE TABLE history
                     (ID int, date varchar(45), price varchar(45),
                      market_cap varchar(45), volume_of_flow varchar(45),
                      FOREIGN KEY (ID) REFERENCES coins(ID))"""
@@ -142,7 +123,20 @@ class Database:
         self.connection.commit()
         self.logger.info("wallets_names table created")
 
-    def append_rows_to_coins(self, data):
+    def update_all(self, dict_):
+        """
+        gets a dictionary, updates the tables
+        :keys: names of tables
+        :values: dataframes to be updated
+        """
+        matcher = {'coins': self.update_coins,
+                   'historical': self.update_history,
+                   'wallets': self.update_wallets,
+                   'distinct_wallets': self.update_wallets_names}
+        for k,v in dict_.items():
+            matcher[k](v)
+
+    def update_coins(self, data):
         """
         Separates new data from other that already existed in the coins table
         Inserts the new rows and updates the existing ones
@@ -179,7 +173,7 @@ class Database:
         except Exception as e:
             self.logger.info(e)
 
-    def append_rows_to_history(self, data):
+    def update_history(self, data):
         """
         Gets the data as a Pandas dataframe with columns:
         ['coin_id', 'total_volume', 'price', 'market_cap', 'snapped_at'].
@@ -198,16 +192,21 @@ class Database:
         except Exception as e:
             self.logger.info(e)
 
-    def append_rows_to_wallets(self, data):
+    def update_wallets(self, data):
         """
         Gets the data as a Pandas dataframe with columns:
         ['coin_id', 'wallet_id'].
         Inserts it into the 'wallets' table
         @param data: Pandas dataframe
         """
+        query = "SELECT * FROM wallets"
+        existing_rows = pd.read_sql(query, self.connection)
+        data = pd.merge(data, existing_rows, on=data.columns, how='left', indicator=True).query(
+            "_merge != 'both'").drop('_merge', axis=1).reset_index(drop=True)
+
         data = data.to_dict('records')
         query = """INSERT INTO wallets (coin_id, wallet_id)
-                    VALUES (%(coin_id)s, %(wallet_id)s)"""
+                            VALUES (%(coin_id)s, %(wallet_id)s)"""
 
         try:
             self.cursor.executemany(query, data)
@@ -216,7 +215,40 @@ class Database:
         except Exception as e:
             self.logger.info(e)
 
-    def append_rows_to_wallets_names(self, data):
+
+        query = "SELECT * FROM wallets"
+        existing_coins = pd.read_sql(query, self.connection)
+        index_of_existing_coins = data.coin_name.isin(existing_coins)
+
+        data_to_append = data[~index_of_existing_coins]
+        data_to_update = data[index_of_existing_coins]
+
+        query = """INSERT INTO coins (ID, coin_name, price, market_cap, coin_url)
+                            VALUES (%s, %s, %s, %s, %s)"""
+        data = data_to_append.values.tolist()
+
+        try:
+            self.cursor.executemany(query, data)
+            self.connection.commit()
+            self.logger.info(f"{len(data_to_append)} rows were successfully uploaded")
+        except Exception as e:
+            self.logger.info(e)
+
+        query = """UPDATE coins
+                            SET price = %(price)s, market_cap = %(market_cap)s
+                            WHERE coin_name = %(coin_name)s"""
+
+        data = data_to_update.to_dict('records')
+
+        try:
+            self.cursor.executemany(query, data)
+            self.connection.commit()
+            self.logger.info(f"{len(data_to_update)} rows were successfully updated")
+        except Exception as e:
+            self.logger.info(e)
+
+
+    def update_wallets_names(self, data):
         """
         Gets the data as a Pandas dataframe with columns:
         ['wallet_name', 'wallet_id'].
