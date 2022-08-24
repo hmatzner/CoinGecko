@@ -99,13 +99,15 @@ def main():
 
     database_args = {keys_matcher[k]: v for k, v in scraper_results.items()}
 
-    db = Database(**database_args, logger=set_logger('database'))
+    db = Database(Init=False, logger=set_logger('database'))
+    db.update_all(database_args)
+    # db = Database(**database_args, logger=set_logger('database'))
 
-    api_results = API.main(coins=coins, logger_input=set_logger('API'))
-    print("Data obtained from the API with coin and price in USD:")
-
-    for coin, val in api_results.items():
-        print(coin.title(), val)
+    # api_results = API.main(coins=coins, logger_input=set_logger('API'))
+    # print("Data obtained from the API with coin and price in USD:")
+    #
+    # for coin, val in api_results.items():
+    #     print(coin.title(), val)
 
     db.close_connection()
 
