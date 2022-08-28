@@ -10,6 +10,7 @@ from database import Database
 MIN_NUMBER_OF_COINS = 1
 MAX_NUMBER_OF_COINS = 100
 
+
 def argument_parser():
     parser = argparse.ArgumentParser(description="Useful information: 'd' and 'D' are mutually exclusive and \
     only one of them is expected at most.")

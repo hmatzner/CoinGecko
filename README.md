@@ -10,6 +10,7 @@ The user is expected to provide optional values for:
 - **t** (until which coin he wants to see information about, must be an integer from 1 to 100 and bigger than **f** if it was provided), 
 - **d** (how many days of historical data), or
 - **D** (from which date to see the historical data).
+
 Note: **d** and **D** are mutually exclusive and only one or none of them should be provided.
 
 The main file coingecko.py imports several files, being one of them webscraper.py, which returns four Pandas dataframes:
