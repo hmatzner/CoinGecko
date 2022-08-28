@@ -6,21 +6,21 @@ import time
 class Database:
     DB_NAME = 'crypto_currencies'
 
-    def __init__(self, Init=True, db_name=DB_NAME, logger=None):
+    def __init__(self, init=True, db_name=DB_NAME, logger=None):
         """
         Initializes the class by creating the database and the tables
         @param logger: logger object
         """
-        start = time.perf_counter()
         try:
             with open('.gitignore_folder/password.txt') as f:
                 self.PASSWORD = f.read()
         except FileNotFoundError:
             self.PASSWORD = input("Provide password for MySQL server: ")
 
+        start = time.perf_counter()
         self.db_name = db_name
         self.logger = logger
-        if Init:
+        if init:
             self.connection = self.create_connection(use_db=False)
             self.cursor = self.connection.cursor()
             self.create_database()
@@ -65,7 +65,7 @@ class Database:
 
     def create_tables(self):
         """
-        Initalizes 4 tables:
+        Initializes 4 tables:
         Updating data will be stored in coins
         Historical data will be stored in history
         Information about wallets will be stored in wallets
@@ -130,10 +130,10 @@ class Database:
         :values: dataframes to be updated
         """
         matcher = {'coins': self.update_coins,
-                   'historical': self.update_history,
+                   'hist': self.update_history,
                    'wallets': self.update_wallets,
-                   'distinct_wallets': self.update_wallets_names}
-        for k,v in dict_.items():
+                   'wallets_names': self.update_wallets_names}
+        for k, v in dict_.items():
             matcher[k](v)
 
     def update_coins(self, data):
@@ -199,6 +199,7 @@ class Database:
         Inserts it into the 'wallets' table
         @param data: Pandas dataframe
         """
+        return
         query = "SELECT * FROM wallets"
         existing_rows = pd.read_sql(query, self.connection)
         data = pd.merge(data, existing_rows, on=data.columns, how='left', indicator=True).query(
@@ -214,7 +215,6 @@ class Database:
             self.logger.info(f"{len(data)} rows were successfully uploaded to the wallets table")
         except Exception as e:
             self.logger.info(e)
-
 
         query = "SELECT * FROM wallets"
         existing_coins = pd.read_sql(query, self.connection)
@@ -246,7 +246,6 @@ class Database:
             self.logger.info(f"{len(data_to_update)} rows were successfully updated")
         except Exception as e:
             self.logger.info(e)
-
 
     def update_wallets_names(self, data):
         """

@@ -99,7 +99,6 @@ def main(coins=None, days=10, logger_input=None):
 
     try:
         if days:
-            print(f"Last {days} days:")
             print(f"Historical data of the last {days} days:")
             if coins:
                 coin = coins[0]

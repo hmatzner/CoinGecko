@@ -309,7 +309,7 @@ def web_scraper(url, soup, f, t, days, date):
         dataframe.insert(0, 'coin_id', first_column)
 
     print('\n')
-    dict_ = {'coins': df_coins, 'historical': df_historical, 'wallets': df_wallets, 'distinct_wallets': df_distinct_wallets}
+    dict_ = {'coins': df_coins, 'hist': df_historical, 'wallets': df_wallets, 'wallets_names': df_distinct_wallets}
     return dict_
 
 
@@ -319,6 +319,7 @@ def main(f, t, days, date):
     - checks all four possible arguments provided by the user have a correct value, giving an error message otherwise
     - calls the get_soup and web_scraper functions
     - returns three dataframes returned by the web_scraped function
+    # TODO: change this docstring
     """
     print('Performing the web scraping task with the requests module...')
     start = time.perf_counter()
