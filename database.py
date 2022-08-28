@@ -199,11 +199,13 @@ class Database:
         Inserts it into the 'wallets' table
         @param data: Pandas dataframe
         """
-        return
         query = "SELECT * FROM wallets"
         existing_rows = pd.read_sql(query, self.connection)
-        data = pd.merge(data, existing_rows, on=data.columns, how='left', indicator=True).query(
-            "_merge != 'both'").drop('_merge', axis=1).reset_index(drop=True)
+        if len(existing_rows) > 0:
+            data = data.merge(existing_rows, on=data.columns, how='left')
+            # .query(
+            # "_merge != 'both'").drop('_merge', axis=1).reset_index(drop=True)
+            # print(data)
 
         data = data.to_dict('records')
         query = """INSERT INTO wallets (coin_id, wallet_id)
@@ -216,36 +218,6 @@ class Database:
         except Exception as e:
             self.logger.info(e)
 
-        query = "SELECT * FROM wallets"
-        existing_coins = pd.read_sql(query, self.connection)
-        index_of_existing_coins = data.coin_name.isin(existing_coins)
-
-        data_to_append = data[~index_of_existing_coins]
-        data_to_update = data[index_of_existing_coins]
-
-        query = """INSERT INTO coins (ID, coin_name, price, market_cap, coin_url)
-                            VALUES (%s, %s, %s, %s, %s)"""
-        data = data_to_append.values.tolist()
-
-        try:
-            self.cursor.executemany(query, data)
-            self.connection.commit()
-            self.logger.info(f"{len(data_to_append)} rows were successfully uploaded")
-        except Exception as e:
-            self.logger.info(e)
-
-        query = """UPDATE coins
-                            SET price = %(price)s, market_cap = %(market_cap)s
-                            WHERE coin_name = %(coin_name)s"""
-
-        data = data_to_update.to_dict('records')
-
-        try:
-            self.cursor.executemany(query, data)
-            self.connection.commit()
-            self.logger.info(f"{len(data_to_update)} rows were successfully updated")
-        except Exception as e:
-            self.logger.info(e)
 
     def update_wallets_names(self, data):
         """
