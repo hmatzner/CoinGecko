@@ -110,7 +110,8 @@ def main():
     else:
         f, t, days, date = args
 
-    scraper_results = webscraper.main(f, t, days, date)
+
+    scraper_results = webscraper.dataframes_creator(f, t, days, date)
 
     coins = scraper_results['coins']['coin_name'].to_list()
 
