@@ -50,14 +50,15 @@ class Database:
         """
         database_existed = pd.read_sql("SHOW DATABASES", self.connection)
 
-        if (self.conf.name,) in database_existed:
+        if self.conf['name'] in database_existed.values:
             self.logger.info("Database already exist; Deleting it and creating new from scratch")
-            self.cursor.execute(f"DROP DATABASE {self.conf.name}")
+            self.cursor.execute(f"DROP DATABASE {self.conf['name']}")
+            self.connection.commit()
 
-        self.cursor.execute(f"CREATE DATABASE {self.conf.name}")
+        self.cursor.execute(f"CREATE DATABASE {self.conf['name']}")
         self.connection.commit()
         self.logger.info("Database created")
-        self.cursor.execute(f"USE {self.conf.name}")
+        self.cursor.execute(f"USE {self.conf['name']}")
 
     def create_tables(self):
         """
