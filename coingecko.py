@@ -1,4 +1,5 @@
 import sys
+from os.path import exists
 import logging
 import argparse
 import re
@@ -6,6 +7,7 @@ from datetime import datetime
 import webscraper
 import API
 from database import Database
+
 
 MIN_NUMBER_OF_COINS = 1
 MAX_NUMBER_OF_COINS = 100
@@ -102,6 +104,8 @@ def main():
     """
     # TODO
     """
+    logger = set_logger('coingecko')
+
     args_parser = argument_parser()
 
     args = argument_format_checker(args_parser)
@@ -125,8 +129,14 @@ def main():
     # database_args = {keys_matcher[k]: v for k, v in scraper_results.items()}
     # print(f'Database_args = {database_args}')
 
-    db = Database(init=True, logger=set_logger('database'))
-    db.update_all(scraper_results)
+    if exists("configurations.json"):
+        db = Database(init=False, logger=set_logger('database'))
+        db.update_all(scraper_results)
+        db.close_connection()
+
+    else:
+        print("configurations.json should be created. for format of file look at README.md")
+        logger.error("configurations.json should be created")
 
     # api_results = API.main(coins=coins, logger_input=set_logger('API'))
     # print(pd.DataFrame(api_results))
@@ -135,7 +145,7 @@ def main():
     # for coin, val in api_results.items():
     #     print(coin.title(), val)
     #
-    # db.close_connection()
+
 
 
 if __name__ == '__main__':
