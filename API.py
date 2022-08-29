@@ -26,10 +26,10 @@ def get_coin_current_price(json_coin):
     @param json_coin: JSON file of a coin
     @return: a coin's current price in USD
     """
-    try:
-        return json_coin['market_data']['current_price']['btc']/BIT_TO_USD
-    except Exception as e:
-        logger.error(e)
+    # try:
+    return json_coin['market_data']['current_price']['btc']/BIT_TO_USD
+    # except Exception as e:
+    #     logger.error(e)
 
 
 def get_coin_market_cap(json_coin):
@@ -64,8 +64,6 @@ def fix_time_stamps(history_json):
     A helper function for get_historical
     Fixes timestamps to human time
     """
-    # print(f"(fix_time_stamps)historical:\n{history_json}")
-
     try:
         fixed_history = dict()
         for k, lst in history_json.items():
@@ -90,7 +88,7 @@ def main(coins=None, days=10, logger_input=None):
     dict_ = dict()
     try:
         if coins:
-            coins = [coin.lower() for coin in coins]
+            coins = [coin.lower().replace(' ', '-') for coin in coins]
             for coin in coins:
                 data = get_json(coin)
                 dict_[coin] = get_coin_current_price(data)

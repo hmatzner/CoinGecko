@@ -112,24 +112,28 @@ def main():
     scraper_results = webscraper.main(f, t, days, date)
 
     coins = scraper_results['coins']['coin_name'].to_list()
+    print(coins)
+
+    # coins = ['Bitcoin', 'Ethereum', 'Tether', 'USD Coin']
 
     # matching names returned from web scraper to those database receive
-    keys_matcher = {'coins': 'coins', 'hist': 'hist', 'wallets': 'wallets', 'wallets_names': 'wallets_names'}
+    # keys_matcher = {'coins': 'coins', 'hist': 'hist', 'wallets': 'wallets', 'wallets_names': 'wallets_names'}
     # TODO: remove the keys_matcher and make the column names match from the beginning
+    #
+    # database_args = {keys_matcher[k]: v for k, v in scraper_results.items()}
+    # print(f'Database_args = {database_args}')
 
-    database_args = {keys_matcher[k]: v for k, v in scraper_results.items()}
-    print(f'Database_args = {database_args}')
-
-    db = Database(logger=set_logger('database'))
+    db = Database(init=True, logger=set_logger('database'))
     db.update_all(scraper_results)
 
-    api_results = API.main(coins=coins, logger_input=set_logger('API'))
-    print("Data obtained from the API with coin and price in USD:")
-
-    for coin, val in api_results.items():
-        print(coin.title(), val)
-
-    db.close_connection()
+    # api_results = API.main(coins=coins, logger_input=set_logger('API'))
+    # print(pd.DataFrame(api_results))
+    # print("Data obtained from the API with coin and price in USD:")
+    #
+    # for coin, val in api_results.items():
+    #     print(coin.title(), val)
+    #
+    # db.close_connection()
 
 
 if __name__ == '__main__':

@@ -4,22 +4,19 @@ import time
 
 
 class Database:
-    DB_NAME = 'crypto_currencies'
-
-    def __init__(self, init=True, db_name=DB_NAME, logger=None):
+    def __init__(self, init, logger):
         """
         Initializes the class by creating the database and the tables
         @param logger: logger object
         """
+        self.logger = logger
         try:
-            with open('.gitignore_folder/password.txt') as f:
-                self.PASSWORD = f.read()
+            self.conf = pd.read_json('configurations.json').db
         except FileNotFoundError:
-            self.PASSWORD = input("Provide password for MySQL server: ")
+            self.logger.error("configurations.json not found")
 
         start = time.perf_counter()
-        self.db_name = db_name
-        self.logger = logger
+
         if init:
             self.connection = self.create_connection(use_db=False)
             self.cursor = self.connection.cursor()
@@ -38,30 +35,29 @@ class Database:
         @param use_db: if True uses the db_name as the database in the connection, otherwise it doesn't use one
         """
         if use_db:
-            return pymysql.connect(host='localhost',
-                                   user='root',
-                                   password=self.PASSWORD,
-                                   database=self.DB_NAME)
+            return pymysql.connect(host=self.conf.host,
+                                   user=self.conf.user,
+                                   password=self.conf.password,
+                                   database=self.conf['name'])
         else:
-            return pymysql.connect(host='localhost',
-                                   user='root',
-                                   password=self.PASSWORD)
+            return pymysql.connect(host=self.conf.host,
+                                   user=self.conf.user,
+                                   password=self.conf.password)
 
     def create_database(self):
         """
         Creates a database named like db_name variable
         """
-        self.cursor.execute("SHOW DATABASES")
-        database_existed = self.cursor.fetchall()
+        database_existed = pd.read_sql("SHOW DATABASES", self.connection)
 
-        if (self.db_name,) in database_existed:
+        if (self.conf.name,) in database_existed:
             self.logger.info("Database already exist; Deleting it and creating new from scratch")
-            self.cursor.execute(f"DROP DATABASE {self.db_name}")
+            self.cursor.execute(f"DROP DATABASE {self.conf.name}")
 
-        self.cursor.execute(f"CREATE DATABASE {self.DB_NAME}")
+        self.cursor.execute(f"CREATE DATABASE {self.conf.name}")
         self.connection.commit()
         self.logger.info("Database created")
-        self.cursor.execute(f"USE {self.DB_NAME}")
+        self.cursor.execute(f"USE {self.conf.name}")
 
     def create_tables(self):
         """
