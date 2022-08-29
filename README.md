@@ -45,6 +45,17 @@ An ERD of the four tables and their relationships with cardinalities used in dat
 
 The main file coingecko.py is intended to be run from the CLI with the usage of argparse detailed before.
 
+configurtaions.json format:
+{
+  "db": {
+    "host": ___,
+    "password": ___,
+    "user": ____,
+    "name": ____
+  }
+}
+
+
 *This repo is in 'milestone 4' stage and will keep being updated.*
 
 For link to repo, [click here](https://github.com/hmatzner/CoinGecko).
