@@ -313,7 +313,7 @@ def web_scraper(url, soup, f, t, days, date):
     return dict_
 
 
-def main(f, t, days, date):
+def dataframes_creator(f, t, days, date):
     """
     Main function of the module:
     - checks all four possible arguments provided by the user have a correct value, giving an error message otherwise

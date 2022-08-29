@@ -215,7 +215,6 @@ class Database:
         except Exception as e:
             self.logger.info(e)
 
-
     def update_wallets_names(self, data):
         """
         Gets the data as a Pandas dataframe with columns:

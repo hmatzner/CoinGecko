@@ -10,6 +10,7 @@ from database import Database
 MIN_NUMBER_OF_COINS = 1
 MAX_NUMBER_OF_COINS = 100
 
+
 def argument_parser():
     parser = argparse.ArgumentParser(description="Useful information: 'd' and 'D' are mutually exclusive and \
     only one of them is expected at most.")
@@ -109,7 +110,8 @@ def main():
     else:
         f, t, days, date = args
 
-    scraper_results = webscraper.main(f, t, days, date)
+
+    scraper_results = webscraper.dataframes_creator(f, t, days, date)
 
     coins = scraper_results['coins']['coin_name'].to_list()
     print(coins)
