@@ -12,11 +12,10 @@ import lxml.html
 from urllib.request import Request, urlopen
 from datetime import datetime
 from tqdm import tqdm
-# from coingecko import set_logger
+from logger import logger
 
 COINGECKO_URL = 'https://www.coingecko.com'
-# logger = set_logger('coingecko')
-# TODO: make it nicer without importing coingecko
+logger = logger()
 
 
 def get_soup(url):
@@ -282,7 +281,7 @@ def web_scraper(url, soup, f, t, days, date):
     return dict_
 
 
-def dataframes_creator(f, t, days, date, logger_input):
+def dataframes_creator(f, t, days, date):
     """
     Main function of the module:
     - checks all four possible arguments provided by the user have a correct value, giving an error message otherwise
@@ -290,8 +289,8 @@ def dataframes_creator(f, t, days, date, logger_input):
     - returns three dataframes returned by the web_scraped function
     # TODO: change this docstring
     """
-    global logger
-    logger = logger_input
+    # global logger
+    # logger = logger_input
 
     logger.info('Performing the web scraping task with the requests module...')
     start = time.perf_counter()

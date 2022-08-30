@@ -1,17 +1,20 @@
 import pymysql
 import pandas as pd
 import time
+from logger import logger
 import warnings
+
 warnings.filterwarnings("ignore")
 
 
 class Database:
-    def __init__(self, init, logger):
+    logger = logger()
+
+    def __init__(self, init):
         """
         Initializes the class by creating the database and the tables
-        @param logger: logger object
         """
-        self.logger = logger
+        # self.logger = logger
         try:
             self.conf = pd.read_json('configurations.json').db
         except FileNotFoundError:
@@ -62,7 +65,7 @@ class Database:
 
     def create_tables(self):
         """
-        Initializes 4 tables:
+        Initializes four tables:
         Updating data will be stored in coins
         Historical data will be stored in history
         Information about wallets will be stored in wallets
@@ -153,37 +156,6 @@ class Database:
         except Exception as e:
             self.logger.info(e)
 
-        # query = "SELECT coin_name FROM coins"
-        # existing_coins = pd.read_sql(query, self.connection).coin_name
-        # index_of_existing_coins = data.coin_name.isin(existing_coins)
-        #
-        # data_to_append = data[~index_of_existing_coins]
-        # data_to_update = data[index_of_existing_coins]
-        #
-        # query = """INSERT INTO coins (ID, coin_name, price, market_cap, coin_url)
-        #             VALUES (%s, %s, %s, %s, %s)"""
-        # data = data_to_append.values.tolist()
-        #
-        # try:
-        #     self.cursor.executemany(query, data)
-        #     self.connection.commit()
-        #     self.logger.info(f"{len(data_to_append)} rows were successfully uploaded")
-        # except Exception as e:
-        #     self.logger.info(e)
-        #
-        # query = """UPDATE coins
-        #             SET price = %(price)s, market_cap = %(market_cap)s
-        #             WHERE coin_name = %(coin_name)s"""
-        #
-        # data = data_to_update.to_dict('records')
-        #
-        # try:
-        #     self.cursor.executemany(query, data)
-        #     self.connection.commit()
-        #     self.logger.info(f"{len(data_to_update)} rows were successfully updated")
-        # except Exception as e:
-        #     self.logger.info(e)
-
     def update_history(self, data):
         """
         Gets the data as a Pandas dataframe with columns:
@@ -249,7 +221,7 @@ class Database:
 
     def show_coins(self):
         """
-        prints the coins tables
+        Prints the coins tables
         """
         print(pd.read_sql("SELECT * FROM coins", self.connection)[['coin_name', 'price', 'timestamp']])
 

@@ -7,7 +7,10 @@ from datetime import datetime
 from webscraper import dataframes_creator
 import API
 from database import Database
+from logger import logger
+import pandas as pd
 
+logger = logger()
 
 
 def argument_parser():
@@ -18,16 +21,12 @@ def argument_parser():
     parser.add_argument('-t', '--to_coin', type=int, metavar='', help='Input until which coin (1 to 100), \
     you would like to receive information about. Default value: t=100.')
 
-    # parser.add_argument('--init_tables', type=bool, metavar='', help='If True: tables will be created from scratch. \
-    # Default value: False.')
     parser.add_argument('--init_tables', action='store_true', help='If True: tables will be created from scratch. \
     Default value: False.')
-    parser.add_argument('--dont_init_tables', dest='init_tables', action='store_false')
     parser.set_defaults(init_tables=False)
 
     parser.add_argument('--print_coins', action='store_true', help='If True: prints the coins table from SQL server. \
         Default value: False.')
-    parser.add_argument('--dont_print_coins', dest='init_tables', action='store_false')
     parser.set_defaults(print_coins=False)
 
     group = parser.add_mutually_exclusive_group()
@@ -41,7 +40,7 @@ def argument_parser():
     return args
 
 
-def arguments_format_checker(args, logger):
+def arguments_format_checker(args):
     MIN_NUMBER_OF_COINS = 1
     MAX_NUMBER_OF_COINS = 100
     f = args.from_coin
@@ -87,53 +86,23 @@ def arguments_format_checker(args, logger):
     return f, t, init_tables, print_coins, days, date
 
 
-def set_logger(name):
-    """
-    Performs the logging of a file given
-    @param name: name of the log file
-    @return: logger object
-    """
-    logger = logging.getLogger(name)
-    logger.setLevel(logging.DEBUG)
-
-    formatter = logging.Formatter(
-        '%(asctime)s-%(levelname)s-FILE:%(filename)s-FUNC:%(funcName)s'
-        '-LINE:%(lineno)d-%(message)s')
-
-    file_handler = logging.FileHandler(name + '.log')
-    file_handler.setLevel(logging.INFO)
-    file_handler.setFormatter(formatter)
-    logger.addHandler(file_handler)
-
-    stream_handler = logging.StreamHandler(sys.stdout)
-    stream_handler.setLevel(logging.ERROR)
-    stream_handler.setFormatter(formatter)
-    logger.addHandler(stream_handler)
-    
-    return logger
-
-
 def main():
     """
     # TODO
     """
-    logger = set_logger('coingecko')
 
     args_parser = argument_parser()
 
-    args = arguments_format_checker(args_parser, logger)
+    args = arguments_format_checker(args_parser)
     if args is None:
         return
     else:
         f, t, init_tables, print_coins, days, date = args
 
-    if exists("configurations.json"):
-        db = Database(init=init_tables, logger=set_logger('database'))
-    # scraper_results = webscraper.dataframes_creator(f, t, days, date)
-    scraper_results = dataframes_creator(f, t, days, date, set_logger('webscraper'))
+    scraper_results = dataframes_creator(f, t, days, date)
 
     if exists("configurations.json"):
-        # db = Database(init=init_tables, logger=set_logger('database'))
+        db = Database(init=init_tables)
         if init_tables:
             db.update_all(scraper_results)
         else:
@@ -147,14 +116,14 @@ def main():
         # print("configurations.json should be created. for format of file look at README.md")
         logger.error("ERROR: The file configurations.json does not exist.")
 
-    # coins = scraper_results['coins']['coin_name'].to_list()
+    coins = scraper_results['coins']['coin_name'].to_list()
     # coins = ['Bitcoin', 'Ethereum', 'Tether', 'USD Coin']
-    # api_results = API.main(coins=coins, logger_input=set_logger('API'))
-    # print(pd.DataFrame(api_results))
-    # print("Data obtained from the API with coin and price in USD:")
+    api_results = API.main(coins=coins)
+    print(pd.DataFrame(api_results))
+    print("Data obtained from the API with coin and price in USD:")
     #
-    # for coin, val in api_results.items():
-    #     print(coin.title(), val)
+    for coin, val in api_results.items():
+        print(coin.title(), val)
 
 
 if __name__ == '__main__':

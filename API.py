@@ -1,8 +1,9 @@
 import requests
 import time
 from datetime import datetime
+from logger import logger
 
-
+logger = logger()
 API_URL = "https://api.coingecko.com/api/v3/coins/"
 
 
@@ -73,17 +74,14 @@ def fix_time_stamps(history_json):
         logger.error(e)
 
 
-def main(coins=None, days=10, logger_input=None):
+def main(coins=None, days=10):
     """
 
     @param coins:
     @param days:
-    @param logger_input:
     @return:
     """
     start = time.perf_counter()
-    global logger
-    logger = logger_input
     logger.info("in")
     dict_ = dict()
     try:
