@@ -21,6 +21,9 @@ def argument_parser():
     parser.add_argument('-t', '--to_coin', type=int, metavar='', help='Input until which coin (1 to 100), \
     you would like to receive information about. Default value: t=100.')
 
+    parser.add_argument('--init_tables', type=bool, metavar='', help='If True: tables will be created from scratch. \
+    Default value: False.')
+
     group = parser.add_mutually_exclusive_group()
     group.add_argument('-d', '--days', type=int, metavar='', help='Input number of days of historical \
     data you want to see (default: maximum available for each coin).')
@@ -35,6 +38,7 @@ def argument_parser():
 def argument_format_checker(args):
     f = args.from_coin
     t = args.to_coin
+    init_tables = args.init_tables
     days = args.days
     date = args.date
 
@@ -52,6 +56,12 @@ def argument_format_checker(args):
         print("ERROR: The value of the argument 'to_coin' must be an integer from 1 to 100.")
         # sys.exit(1)
         return
+
+    if init_tables:
+        if type(init_tables) != bool:
+            init_tables = False
+    else:
+        init_tables = False
 
     if date is not None:
         date_correct = re.search('^\\d{4}-\\d{2}-\\d{2}$', date)
@@ -71,7 +81,7 @@ def argument_format_checker(args):
         # sys.exit(1)
         return
 
-    return f, t, days, date
+    return f, t, init_tables, days, date
 
 
 def set_logger(name):
@@ -112,41 +122,30 @@ def main():
     if args is None:
         return
     else:
-        f, t, days, date = args
-
+        f, t, init_tables, days, date = args
 
     scraper_results = webscraper.dataframes_creator(f, t, days, date)
 
-    coins = scraper_results['coins']['coin_name'].to_list()
-    print(coins)
-
-    # coins = ['Bitcoin', 'Ethereum', 'Tether', 'USD Coin']
-
-    # matching names returned from web scraper to those database receive
-    # keys_matcher = {'coins': 'coins', 'hist': 'hist', 'wallets': 'wallets', 'wallets_names': 'wallets_names'}
-    # TODO: remove the keys_matcher and make the column names match from the beginning
-    #
-    # database_args = {keys_matcher[k]: v for k, v in scraper_results.items()}
-    # print(f'Database_args = {database_args}')
-
     if exists("configurations.json"):
-        db = Database(init=False, logger=set_logger('database'))
-        db.update_all(scraper_results)
+        db = Database(init=init_tables, logger=set_logger('database'))
+        if init_tables:
+            db.update_all(scraper_results)
+        else:
+            db.update_coins(scraper_results['coins'])
         db.close_connection()
 
     else:
         print("configurations.json should be created. for format of file look at README.md")
         logger.error("configurations.json should be created")
 
+    # coins = scraper_results['coins']['coin_name'].to_list()
+    # coins = ['Bitcoin', 'Ethereum', 'Tether', 'USD Coin']
     # api_results = API.main(coins=coins, logger_input=set_logger('API'))
     # print(pd.DataFrame(api_results))
     # print("Data obtained from the API with coin and price in USD:")
     #
     # for coin, val in api_results.items():
     #     print(coin.title(), val)
-    #
-
-
 
 if __name__ == '__main__':
     main()

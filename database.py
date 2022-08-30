@@ -17,14 +17,12 @@ class Database:
 
         start = time.perf_counter()
 
+        self.connection = self.create_connection(use_db=True)
+        self.cursor = self.connection.cursor()
+
         if init:
-            self.connection = self.create_connection(use_db=False)
-            self.cursor = self.connection.cursor()
-            self.create_database()
+            # self.create_database()
             self.create_tables()
-        else:
-            self.connection = self.create_connection(use_db=True)
-            self.cursor = self.connection.cursor()
 
         end = time.perf_counter()
         print(f'Time taken to store data in SQL: {end - start} seconds.\n')
@@ -68,6 +66,9 @@ class Database:
         Information about wallets will be stored in wallets
         Connections between coins and wallets will be stored in wallets names
         """
+        tables = pd.read_sql("SHOW TABLES", self.connection).Tables_in_dor_hernan.values
+        for table in tables[::-1]:
+            self.cursor.execute(f"DROP TABLE {table}")
         self.create_coins_table()
         self.create_history_table()
         self.create_wallets_table()
