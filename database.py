@@ -245,6 +245,12 @@ class Database:
         except Exception as e:
             self.logger.info(e)
 
+    def show_coins(self):
+        """
+        prints the coins tables
+        """
+        print(pd.read_sql("SELECT * FROM coins", self.connection))
+
     def close_connection(self):
         """
         Closes the cursor and the connection.

@@ -24,6 +24,11 @@ def argument_parser():
     parser.add_argument('--dont_init_tables', dest='init_tables', action='store_false')
     parser.set_defaults(init_tables=False)
 
+    parser.add_argument('--print_coins', action='store_true', help='If True: prints the coins table from SQL server. \
+        Default value: False.')
+    parser.add_argument('--dont_print_coins', dest='init_tables', action='store_false')
+    parser.set_defaults(print_coins=False)
+
     group = parser.add_mutually_exclusive_group()
     group.add_argument('-d', '--days', type=int, metavar='', help='Input number of days of historical \
     data you want to see (default: maximum available for each coin).')
@@ -41,6 +46,7 @@ def arguments_format_checker(args, logger):
     f = args.from_coin
     t = args.to_coin
     init_tables = args.init_tables
+    print_coins = args.print_coins
     days = args.days
     date = args.date
 
@@ -58,9 +64,6 @@ def arguments_format_checker(args, logger):
         logger.error("ERROR: The value of the argument 'to_coin' must be an integer from 1 to 100.")
         # sys.exit(1)
         return
-
-    if type(init_tables) != bool:
-        init_tables = False
 
     if date is not None:
         date_correct = re.search('^\\d{4}-\\d{2}-\\d{2}$', date)
@@ -80,7 +83,7 @@ def arguments_format_checker(args, logger):
         # sys.exit(1)
         return
 
-    return f, t, init_tables, days, date
+    return f, t, init_tables, print_coins, days, date
 
 
 def set_logger(name):
@@ -121,11 +124,10 @@ def main():
     if args is None:
         return
     else:
-        f, t, init_tables, days, date = args
+        f, t, init_tables, print_coins, days, date = args
 
     # scraper_results = webscraper.dataframes_creator(f, t, days, date)
     scraper_results = dataframes_creator(f, t, days, date, set_logger('webscraper'))
-    logger.info("webscraper done")
 
     if exists("configurations.json"):
         db = Database(init=init_tables, logger=set_logger('database'))
@@ -133,6 +135,9 @@ def main():
             db.update_all(scraper_results)
         else:
             db.update_coins(scraper_results['coins'])
+
+        if print_coins:
+            db.show_coins()
         db.close_connection()
 
     else:
