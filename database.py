@@ -251,7 +251,6 @@ class Database:
         """
         prints the coins tables
         """
-        # pd.set_option('max_columns', None)
         print(pd.read_sql("SELECT * FROM coins", self.connection)[['coin_name', 'price', 'timestamp']])
 
     def close_connection(self):
