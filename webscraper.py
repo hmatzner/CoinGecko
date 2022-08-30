@@ -3,7 +3,6 @@ import os
 # import re
 import requests
 # import argparse
-import logging
 import time
 import pandas as pd
 from bs4 import BeautifulSoup

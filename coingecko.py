@@ -113,13 +113,11 @@ def main():
         db.close_connection()
 
     else:
-        # print("configurations.json should be created. for format of file look at README.md")
         logger.error("ERROR: The file configurations.json does not exist.")
 
     coins = scraper_results['coins']['coin_name'].to_list()
-    # coins = ['Bitcoin', 'Ethereum', 'Tether', 'USD Coin']
     api_results = API.main(coins=coins)
-    print(pd.DataFrame(api_results))
+    # print(pd.DataFrame(api_results))
     print("Data obtained from the API with coin and price in USD:")
     #
     for coin, val in api_results.items():
