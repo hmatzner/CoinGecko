@@ -1,6 +1,8 @@
 import pymysql
 import pandas as pd
 import time
+import warnings
+warnings.filterwarnings("ignore")
 
 
 class Database:
@@ -249,7 +251,8 @@ class Database:
         """
         prints the coins tables
         """
-        print(pd.read_sql("SELECT * FROM coins", self.connection))
+        # pd.set_option('max_columns', None)
+        print(pd.read_sql("SELECT * FROM coins", self.connection)[['coin_name', 'price', 'timestamp']])
 
     def close_connection(self):
         """

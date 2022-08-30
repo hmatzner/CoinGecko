@@ -9,6 +9,7 @@ import API
 from database import Database
 
 
+
 def argument_parser():
     parser = argparse.ArgumentParser(description="Useful information: 'd' and 'D' are mutually exclusive and \
     only one of them is expected at most.")
@@ -126,11 +127,13 @@ def main():
     else:
         f, t, init_tables, print_coins, days, date = args
 
+    if exists("configurations.json"):
+        db = Database(init=init_tables, logger=set_logger('database'))
     # scraper_results = webscraper.dataframes_creator(f, t, days, date)
     scraper_results = dataframes_creator(f, t, days, date, set_logger('webscraper'))
 
     if exists("configurations.json"):
-        db = Database(init=init_tables, logger=set_logger('database'))
+        # db = Database(init=init_tables, logger=set_logger('database'))
         if init_tables:
             db.update_all(scraper_results)
         else:
