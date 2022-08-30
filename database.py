@@ -79,8 +79,8 @@ class Database:
         Creates the 'coins' table in the database
         """
         query = """CREATE TABLE coins
-                    (ID int NOT NULL PRIMARY KEY, coin_name varchar(45), price varchar(45),
-                     market_cap varchar(45), coin_url varchar(65))"""
+                    (ID int AUTO_INCREMENT PRIMARY KEY, coin_name varchar(45), price varchar(45),
+                     market_cap varchar(45), coin_url varchar(65), timestamp DATETIME DEFAULT CURRENT_TIMESTAMP)"""
 
         self.cursor.execute(query)
         self.connection.commit()
@@ -140,36 +140,47 @@ class Database:
         Inserts the new rows and updates the existing ones
         @param data: coins dataframe
         """
-        query = "SELECT coin_name FROM coins"
-        existing_coins = pd.read_sql(query, self.connection).coin_name
-        index_of_existing_coins = data.coin_name.isin(existing_coins)
+        # print(data.drop(columns=['coin_id']))
 
-        data_to_append = data[~index_of_existing_coins]
-        data_to_update = data[index_of_existing_coins]
-
-        query = """INSERT INTO coins (ID, coin_name, price, market_cap, coin_url)
-                    VALUES (%s, %s, %s, %s, %s)"""
-        data = data_to_append.values.tolist()
-
+        query = """INSERT INTO coins (coin_name, price, market_cap, coin_url)
+                    VALUES (%s, %s, %s, %s)"""
         try:
-            self.cursor.executemany(query, data)
+            self.cursor.executemany(query, data.drop(columns=['coin_id']).values.tolist())
             self.connection.commit()
-            self.logger.info(f"{len(data_to_append)} rows were successfully uploaded")
+            self.logger.info(f"{len(data)} rows were successfully uploaded")
         except Exception as e:
             self.logger.info(e)
 
-        query = """UPDATE coins
-                    SET price = %(price)s, market_cap = %(market_cap)s
-                    WHERE coin_name = %(coin_name)s"""
-
-        data = data_to_update.to_dict('records')
-
-        try:
-            self.cursor.executemany(query, data)
-            self.connection.commit()
-            self.logger.info(f"{len(data_to_update)} rows were successfully updated")
-        except Exception as e:
-            self.logger.info(e)
+        # query = "SELECT coin_name FROM coins"
+        # existing_coins = pd.read_sql(query, self.connection).coin_name
+        # index_of_existing_coins = data.coin_name.isin(existing_coins)
+        #
+        # data_to_append = data[~index_of_existing_coins]
+        # data_to_update = data[index_of_existing_coins]
+        #
+        # query = """INSERT INTO coins (ID, coin_name, price, market_cap, coin_url)
+        #             VALUES (%s, %s, %s, %s, %s)"""
+        # data = data_to_append.values.tolist()
+        #
+        # try:
+        #     self.cursor.executemany(query, data)
+        #     self.connection.commit()
+        #     self.logger.info(f"{len(data_to_append)} rows were successfully uploaded")
+        # except Exception as e:
+        #     self.logger.info(e)
+        #
+        # query = """UPDATE coins
+        #             SET price = %(price)s, market_cap = %(market_cap)s
+        #             WHERE coin_name = %(coin_name)s"""
+        #
+        # data = data_to_update.to_dict('records')
+        #
+        # try:
+        #     self.cursor.executemany(query, data)
+        #     self.connection.commit()
+        #     self.logger.info(f"{len(data_to_update)} rows were successfully updated")
+        # except Exception as e:
+        #     self.logger.info(e)
 
     def update_history(self, data):
         """
