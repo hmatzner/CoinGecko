@@ -2,6 +2,7 @@ import requests
 import time
 from datetime import datetime
 from logger import logger
+import pandas as pd
 
 logger = logger()
 API_URL = "https://api.coingecko.com/api/v3/coins/"
@@ -83,29 +84,28 @@ def main(coins=None, days=10):
     """
     start = time.perf_counter()
     logger.info("in")
-    dict_ = dict()
-    try:
-        if coins:
-            coins = [coin.lower().replace(' ', '-') for coin in coins]
-            for coin in coins:
+    coins_df = dict()
+
+    if coins:
+        coins = [coin.lower().replace(' ', '-') for coin in coins]
+        for coin in coins:
+            try:
                 data = get_json(coin)
-                dict_[coin] = get_coin_current_price(data)
-    except Exception as e:
-        logger.error(e)
+                coins_df[coin] = get_coin_current_price(data)
+            except Exception as e:
+                logger.error(e)
 
-    try:
-        if days:
-            print(f"Historical data of the last {days} days:")
-            if coins:
-                coin = coins[0]
-            else:
-                coin = 'bitcoin'
-
-            historical = get_historical(coin, days)
-            print(f"Historical: \n{historical}")
-    except Exception as e:
-        logger.error(e)
+    historical = pd.DataFrame
+    if days:
+        print(f"Historical data of the last {days} days:")
+        for coin in coins:
+            try:
+                historical[coin] = get_historical(coin, days)
+            except Exception as e:
+                logger.error(e)
 
     end = time.perf_counter()
     print(f'Time taken to get the data from the API: {(end - start):.2f} seconds.\n')
-    return dict_
+
+    # print(historical)
+    return pd.Series(coins_df, name='coins')

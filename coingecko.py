@@ -111,12 +111,6 @@ def main():
 
     coins = scraper_results['coins']['coin_name'].to_list()
     api_results = API.main(coins=coins)
-    # print(pd.DataFrame(api_results))
-    print("Data obtained from the API with coin and price in USD:")
-    #
-    for coin, val in api_results.items():
-        print(coin.title(), val)
-
 
 if __name__ == '__main__':
     main()
