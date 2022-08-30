@@ -45,7 +45,9 @@ An ERD of the four tables and their relationships with cardinalities used in dat
 
 The main file coingecko.py is intended to be run from the CLI with the usage of argparse detailed before.
 
-configurtaions.json format:
+The configurations.json file has the following format:
+
+`
 {
   "db": {
     "host": ___,
@@ -54,7 +56,7 @@ configurtaions.json format:
     "name": ____
   }
 }
-
+`
 
 *This repo is in 'milestone 4' stage and will keep being updated.*
 

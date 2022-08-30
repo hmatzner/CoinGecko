@@ -4,13 +4,9 @@ import logging
 import argparse
 import re
 from datetime import datetime
-import webscraper
+from webscraper import dataframes_creator
 import API
 from database import Database
-
-
-MIN_NUMBER_OF_COINS = 1
-MAX_NUMBER_OF_COINS = 100
 
 
 def argument_parser():
@@ -35,7 +31,9 @@ def argument_parser():
     return args
 
 
-def argument_format_checker(args):
+def arguments_format_checker(args, logger):
+    MIN_NUMBER_OF_COINS = 1
+    MAX_NUMBER_OF_COINS = 100
     f = args.from_coin
     t = args.to_coin
     init_tables = args.init_tables
@@ -45,7 +43,7 @@ def argument_format_checker(args):
     if f is None:
         f = MIN_NUMBER_OF_COINS
     if f not in range(1, MAX_NUMBER_OF_COINS + 1):
-        print("ERROR: The value of the argument 'from_coin' must be an integer from 1 to 100.")
+        logger.error("ERROR: The value of the argument 'from_coin' must be an integer from 1 to 100.")
         # sys.exit(1)
         return
     f -= 1
@@ -53,7 +51,7 @@ def argument_format_checker(args):
     if t is None:
         t = MAX_NUMBER_OF_COINS
     if t not in range(1, MAX_NUMBER_OF_COINS + 1):
-        print("ERROR: The value of the argument 'to_coin' must be an integer from 1 to 100.")
+        logger.error("ERROR: The value of the argument 'to_coin' must be an integer from 1 to 100.")
         # sys.exit(1)
         return
 
@@ -66,13 +64,13 @@ def argument_format_checker(args):
     if date is not None:
         date_correct = re.search('^\\d{4}-\\d{2}-\\d{2}$', date)
         if date_correct is None:
-            print("ERROR: The format of the argument 'date' should be YYYY-MM-DD.")
+            logger.error("ERROR: The format of the argument 'date' should be YYYY-MM-DD.")
             # sys.exit(1)
             return
         try:
             date = datetime.strptime(date, '%Y-%m-%d')
         except ValueError:
-            print("ERROR: The argument 'date' is invalid.")
+            logger.error("ERROR: The argument 'date' is invalid.")
             # sys.exit(1)
             return
 
@@ -118,13 +116,15 @@ def main():
 
     args_parser = argument_parser()
 
-    args = argument_format_checker(args_parser)
+    args = arguments_format_checker(args_parser, logger)
     if args is None:
         return
     else:
         f, t, init_tables, days, date = args
 
-    scraper_results = webscraper.dataframes_creator(f, t, days, date)
+    # scraper_results = webscraper.dataframes_creator(f, t, days, date)
+    scraper_results = dataframes_creator(f, t, days, date, set_logger('webscraper'))
+    logger.info("webscraper done")
 
     if exists("configurations.json"):
         db = Database(init=init_tables, logger=set_logger('database'))
@@ -135,8 +135,8 @@ def main():
         db.close_connection()
 
     else:
-        print("configurations.json should be created. for format of file look at README.md")
-        logger.error("configurations.json should be created")
+        # print("configurations.json should be created. for format of file look at README.md")
+        logger.error("ERROR: The file configurations.json does not exist.")
 
     # coins = scraper_results['coins']['coin_name'].to_list()
     # coins = ['Bitcoin', 'Ethereum', 'Tether', 'USD Coin']
@@ -146,6 +146,7 @@ def main():
     #
     # for coin, val in api_results.items():
     #     print(coin.title(), val)
+
 
 if __name__ == '__main__':
     main()
