@@ -104,5 +104,6 @@ def main(coins=None, days=10):
             except Exception as e:
                 logger.error(e)
 
+    # print(f"Historical data of the last {days} days:")
     # print(historical)
     return pd.Series(coins_df, name='coins')

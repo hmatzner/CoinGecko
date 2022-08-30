@@ -119,6 +119,7 @@ def main():
     start = time.perf_counter()
     api_results = API.main(coins=coins)
     print(f'Time taken to get the data from the API: {(time.perf_counter() - start):.2f} seconds.\n')
+    print(api_results)
 
 
 if __name__ == '__main__':
