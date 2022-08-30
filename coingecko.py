@@ -1,6 +1,5 @@
 import sys
 from os.path import exists
-import logging
 import argparse
 import re
 from datetime import datetime
@@ -41,8 +40,8 @@ def argument_parser():
 
 
 def arguments_format_checker(args):
-    MIN_NUMBER_OF_COINS = 1
-    MAX_NUMBER_OF_COINS = 100
+    MIN_COINS = 1
+    MAX_COINS = 100
     f = args.from_coin
     t = args.to_coin
     init_tables = args.init_tables
@@ -51,36 +50,31 @@ def arguments_format_checker(args):
     date = args.date
 
     if f is None:
-        f = MIN_NUMBER_OF_COINS
-    if f not in range(1, MAX_NUMBER_OF_COINS + 1):
+        f = MIN_COINS
+    if f not in range(1, MAX_COINS + 1):
         logger.error("ERROR: The value of the argument 'from_coin' must be an integer from 1 to 100.")
-        # sys.exit(1)
         return
     f -= 1
 
     if t is None:
-        t = MAX_NUMBER_OF_COINS
-    if t not in range(1, MAX_NUMBER_OF_COINS + 1):
+        t = MAX_COINS
+    if t not in range(1, MAX_COINS + 1):
         logger.error("ERROR: The value of the argument 'to_coin' must be an integer from 1 to 100.")
-        # sys.exit(1)
         return
 
     if date is not None:
         date_correct = re.search('^\\d{4}-\\d{2}-\\d{2}$', date)
         if date_correct is None:
             logger.error("ERROR: The format of the argument 'date' should be YYYY-MM-DD.")
-            # sys.exit(1)
             return
         try:
             date = datetime.strptime(date, '%Y-%m-%d')
         except ValueError:
             logger.error("ERROR: The argument 'date' is invalid.")
-            # sys.exit(1)
             return
 
     if days is not None and days < 0:
         print("ERROR: The argument 'days' should be a non-negative integer.")
-        # sys.exit(1)
         return
 
     return f, t, init_tables, print_coins, days, date
