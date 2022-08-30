@@ -8,6 +8,7 @@ import API
 from database import Database
 from logger import logger
 import pandas as pd
+import time
 
 logger = logger()
 
@@ -93,9 +94,13 @@ def main():
     else:
         f, t, init_tables, print_coins, days, date = args
 
+    start = time.perf_counter()
     scraper_results = dataframes_creator(f, t, days, date)
+    print(f'Time taken to get the data from the web scraper: {(time.perf_counter() - start):.2f} seconds.\n')
 
     if exists("configurations.json"):
+        start = time.perf_counter()
+
         db = Database(init=init_tables)
         if init_tables:
             db.update_all(scraper_results)
@@ -106,16 +111,24 @@ def main():
             db.show_coins()
         db.close_connection()
 
+        print(f'Time taken to store data in SQL: {time.perf_counter() - start:.2f} seconds.\n')
+
+
     else:
         logger.error("ERROR: The file configurations.json does not exist.")
 
     coins = scraper_results['coins']['coin_name'].to_list()
+
+    start = time.perf_counter()
     api_results = API.main(coins=coins)
+    print(f'Time taken to get the data from the API: {(time.perf_counter() - start):.2f} seconds.\n')
+
+
     # print(pd.DataFrame(api_results))
-    print("Data obtained from the API with coin and price in USD:")
+    # print("Data obtained from the API with coin and price in USD:")
     #
-    for coin, val in api_results.items():
-        print(coin.title(), val)
+    # for coin, val in api_results.items():
+    #     print(coin.title(), val)
 
 
 if __name__ == '__main__':
