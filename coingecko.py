@@ -17,8 +17,12 @@ def argument_parser():
     parser.add_argument('-t', '--to_coin', type=int, metavar='', help='Input until which coin (1 to 100), \
     you would like to receive information about. Default value: t=100.')
 
-    parser.add_argument('--init_tables', type=bool, metavar='', help='If True: tables will be created from scratch. \
+    # parser.add_argument('--init_tables', type=bool, metavar='', help='If True: tables will be created from scratch. \
+    # Default value: False.')
+    parser.add_argument('--init_tables', action='store_true', help='If True: tables will be created from scratch. \
     Default value: False.')
+    parser.add_argument('--dont_init_tables', dest='init_tables', action='store_false')
+    parser.set_defaults(init_tables=False)
 
     group = parser.add_mutually_exclusive_group()
     group.add_argument('-d', '--days', type=int, metavar='', help='Input number of days of historical \
@@ -55,10 +59,7 @@ def arguments_format_checker(args, logger):
         # sys.exit(1)
         return
 
-    if init_tables:
-        if type(init_tables) != bool:
-            init_tables = False
-    else:
+    if type(init_tables) != bool:
         init_tables = False
 
     if date is not None:
