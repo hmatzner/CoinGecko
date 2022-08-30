@@ -1,5 +1,4 @@
 import requests
-import time
 from datetime import datetime
 from logger import logger
 import pandas as pd
@@ -82,7 +81,7 @@ def main(coins=None, days=10):
     @param days:
     @return:
     """
-    start = time.perf_counter()
+    # start = time.perf_counter()
     logger.info("in")
     coins_df = dict()
 
@@ -104,8 +103,5 @@ def main(coins=None, days=10):
             except Exception as e:
                 logger.error(e)
 
-    end = time.perf_counter()
-    print(f'Time taken to get the data from the API: {(end - start):.2f} seconds.\n')
-
     # print(historical)
-    return pd.Series(coins_df, name='coins')
+    return pd.Series(coins_df, name='coins')6

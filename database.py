@@ -1,6 +1,5 @@
 import pymysql
 import pandas as pd
-import time
 from logger import logger
 import warnings
 
@@ -20,7 +19,7 @@ class Database:
         except FileNotFoundError:
             self.logger.error("configurations.json not found")
 
-        start = time.perf_counter()
+        # start = time.perf_counter()
 
         self.connection = self.create_connection(use_db=True)
         self.cursor = self.connection.cursor()
@@ -29,8 +28,8 @@ class Database:
             # self.create_database()
             self.create_tables()
 
-        end = time.perf_counter()
-        print(f'Time taken to store data in SQL: {end - start} seconds.\n')
+        # end = time.perf_counter()
+        # print(f'Time taken to store data in SQL: {end - start} seconds.\n')
 
     def create_connection(self, use_db=True):
         """
@@ -128,7 +127,7 @@ class Database:
 
     def update_all(self, dict_):
         """
-        gets a dictionary, updates the tables
+        Gets a dictionary, updates the tables
         :keys: names of tables
         :values: dataframes to be updated
         """
