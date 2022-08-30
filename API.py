@@ -3,7 +3,7 @@ from datetime import datetime
 from logger import logger
 import pandas as pd
 
-logger = logger()
+logger = logger('API')
 API_URL = "https://api.coingecko.com/api/v3/coins/"
 
 
@@ -68,7 +68,9 @@ def fix_time_stamps(history_json):
     try:
         fixed_history = dict()
         for k, lst in history_json.items():
-            fixed_history[k] = [[datetime.fromtimestamp(sub_list[0] // 1000).strftime("%d/%m/%Y"), sub_list[1]] for sub_list in lst]
+            if type(lst) == str:
+                continue
+            fixed_history[k] = [[datetime.fromtimestamp(int(sub_list[0]) // 1000).strftime("%d/%m/%Y"), sub_list[1]] for sub_list in lst]
         return fixed_history
     except Exception as e:
         logger.error(e)
@@ -94,9 +96,8 @@ def main(coins=None, days=10):
             except Exception as e:
                 logger.error(e)
 
-    historical = pd.DataFrame
+    historical = dict()
     if days:
-        print(f"Historical data of the last {days} days:")
         for coin in coins:
             try:
                 historical[coin] = get_historical(coin, days)
@@ -104,4 +105,4 @@ def main(coins=None, days=10):
                 logger.error(e)
 
     # print(historical)
-    return pd.Series(coins_df, name='coins')6
+    return pd.Series(coins_df, name='coins')

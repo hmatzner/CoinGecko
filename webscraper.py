@@ -12,7 +12,7 @@ from tqdm import tqdm
 from logger import logger
 
 COINGECKO_URL = 'https://www.coingecko.com'
-logger = logger()
+logger = logger('webscraper')
 
 
 def get_soup(url):

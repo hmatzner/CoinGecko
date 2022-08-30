@@ -7,7 +7,7 @@ warnings.filterwarnings("ignore")
 
 
 class Database:
-    logger = logger()
+    logger = logger('database')
 
     def __init__(self, init):
         """

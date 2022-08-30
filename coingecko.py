@@ -8,7 +8,7 @@ from database import Database
 from logger import logger
 import time
 
-logger = logger()
+logger = logger('coingecko')
 
 
 def argument_parser():
