@@ -1,0 +1,9 @@
+.DS_Store
+password.txt
+privkey.cer
+configurations.json
+datetime_graph.png
+*.zip
+*.log
+*.ipynb
+__pycache__/
