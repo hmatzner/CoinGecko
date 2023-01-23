@@ -3,7 +3,7 @@ password.txt
 privkey.cer
 configurations.json
 datetime_graph.png
+*.ipynb
 *.zip
 *.log
-*.ipynb
 __pycache__/
