@@ -41,7 +41,10 @@ with the time it took to API.py by running the code with the argparse arguments:
 The .ipynb file in `test/` is a discontinued version of the project adapted for Jupyter Notebook presentation that builds only the 
 first of the four Pandas dataframes mentioned before.
 
-An ERD of the four tables and their relationships with cardinalities used in `database.py` is included as an image.
+An ERD of the four tables and their relationships with cardinalities used in `database.py` is included as an image:
+
+![image](https://user-images.githubusercontent.com/92184473/216643742-d523cac8-1f41-4781-a634-fd34d2ade20b.png)
+
 
 The main file `coingecko.py` is intended to be run from the CLI with the usage of argparse detailed before.
 
