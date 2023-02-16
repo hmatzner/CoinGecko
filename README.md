@@ -21,8 +21,7 @@ The main file `coingecko.py` imports several files, being one of them `webscrape
 
 The script should be run on any python IDLE, check requirements.txt for further information.
 
-Several libraries used are not specified in the requirements.txt file since they are built-in Python modules and there is 
-no need to.
+Several libraries used are not specified in the requirements.txt file since they are built-in Python modules.
 
 To install the dependencies needed for this file, run:
 
