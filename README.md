@@ -12,7 +12,8 @@ The user can provide optional values for the following arguments:
 - **d** - how many days of historical data
 - **D** - from which date to see the historical data
 
-Note: **d** and **D** are mutually exclusive and only one or none of them should be provided.
+Note: **d** and **D** are mutually exclusive and only one or none of them should be provided; if both of them are 
+provided, **d** prevails and **D** is ignored.
 
 The main file `coingecko.py` imports several files, being one of them `webscraper.py`, which returns four Pandas dataframes:
 - one with information of the coins themselves,
